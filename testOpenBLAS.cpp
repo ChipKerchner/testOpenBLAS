@@ -13,6 +13,7 @@
 #define TEST_FLOAT    // Test FP32
 #ifndef TEST_FLOAT
 #define TEST_DOUBLE   // Test FP64
+#define DOUBLE
 #ifndef TEST_DOUBLE
 #define TEST_BFLOAT   // Test BF16
 #endif
