@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #define TEST_MATRIX   // Test GEMM
 #ifndef TEST_MATRIX
@@ -85,7 +86,12 @@
 #define FORCEINLINE      inline __attribute__((always_inline))
 
 #define BF16_EPSILON     (FLOAT)(1 << ((sizeof(FLOAT) - sizeof(IFLOAT)) * 8))
-#define TRANS_EPSILON    (((256 / 8) * 8) / sizeof(FLOAT))
+#ifdef TEST_FLOAT
+#define FLOAT_EPSILON    (FLOAT)(FLT_EPSILON)
+#else
+#define FLOAT_EPSILON    (FLOAT)(DBL_EPSILON)
+#endif
+#define TRANS_EPSILON    2
 
 #define NBMAX            4096
 
@@ -113,19 +119,24 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #undef CNAME
 
 #ifndef TEST_BFLOAT
-#define CNAME  FP3264_PACK_N
-#include "gemm_ncopy_8_rvv.c"
+#define CNAME  FP3264_PACK_MN
+#include "gemm_ncopy_16.c"
 #undef CNAME
-#undef FLOAT_V_T
-#undef VLEV_FLOAT
-#undef VSEV_FLOAT
+#define CNAME  FP3264_PACK_NN
+#include "gemm_ncopy_8.c"
+#undef CNAME
 
-#define CNAME  FP3264_PACK_T
-#include "gemm_tcopy_8_rvv.c"
+#define CNAME  FP3264_PACK_MT
+#include "gemm_tcopy_16.c"
+#undef CNAME
+#define CNAME  FP3264_PACK_NT
+#include "gemm_tcopy_8.c"
 #else
 // Temp
-#define BF16_PACK_N ((funcPACK *)NULL)
-#define BF16_PACK_T ((funcPACK *)NULL)
+#define BF16_PACK_MN ((funcPACK *)NULL)
+#define BF16_PACK_NN ((funcPACK *)NULL)
+#define BF16_PACK_MT ((funcPACK *)NULL)
+#define BF16_PACK_NT ((funcPACK *)NULL)
 #endif
 #else
 #ifndef TEST_BFLOAT
@@ -363,6 +374,21 @@ int FP3264GEMM_N_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT*
   return 0;
 }
 
+int FP3264GEMM_T_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+{
+  for (BLASLONG j = 0; j < N; j++) {
+    for (BLASLONG i = 0; i < M; i++) {
+      FLOAT t = 0;
+      for (BLASLONG k = 0; k < K; k++) {
+        t += A[k * M + i] * B[k * N + j];
+      }
+      C[i] += (t * alpha);
+    }
+    C += ldc;
+  }
+  return 0;
+}
+
 int BF16GEMM_N_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
   return 0;
@@ -416,9 +442,9 @@ func *func_ptr(int test, int orient)
         case TEST_GENERIC:
 #ifdef TEST_MATRIX
 #ifndef TEST_BFLOAT
-          return FP3264GEMM_N_generic;
+          return FP3264GEMM_T_generic;
 #else
-          return BF16GEMM_N_generic;
+          return BF16GEMM_T_generic;
 #endif
 #else
 #ifndef TEST_BFLOAT
@@ -523,15 +549,15 @@ FORCEINLINE void init_array2(BLASLONG i, int y, FLOAT *input_array0)
 void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
           BLASLONG M, BLASLONG N, BLASLONG K)
 {
-  for (BLASLONG j = 0; j < K; j++) {
-    BLASLONG line = j * M;
-    for (BLASLONG i = 0; i < M; i++) {
+  for (BLASLONG j = 0; j < M; j++) {
+    BLASLONG line = j * K;
+    for (BLASLONG i = 0; i < K; i++) {
       init_array(line + i, rand_value(), input_matrix);
     }
   }
-  for (BLASLONG j = 0; j < K; j++) {
-    BLASLONG line = j * N;
-    for (BLASLONG i = 0; i < N; i++) {
+  for (BLASLONG j = 0; j < N; j++) {
+    BLASLONG line = j * K;
+    for (BLASLONG i = 0; i < K; i++) {
       init_array(line + i, rand_value(), input_matrix2);
     }
   }
@@ -543,7 +569,7 @@ void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
   }
 }
 
-int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N, const char *str)
+int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N, BLASLONG K, const char *str)
 {
   FLOAT maxOut = (FLOAT)0;
   BLASLONG m = 0, n = 0;
@@ -560,7 +586,7 @@ int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N,
     }
   }
   if (maxOut > tol) {
-    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld %4ld (%8.6f %8.6f)\n\n", TEST_STR, str, output0[(n * M) + m], output1[(n * M) + m], m, n, maxOut, tol);
+    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld %4ld (%8.6f %8.6f %4ld %4ld %4ld)\n\n", TEST_STR, str, output0[(n * M) + m], output1[(n * M) + m], m, n, maxOut, tol, M, N, K);
     return 1;
   }
   return 0;
@@ -644,8 +670,8 @@ int test_F32(int orient, FLOAT *input_matrix1, FLOAT *input_vector, FLOAT *outpu
 }
 
 #ifdef TEST_MATRIX
-int verify(int test, int orient, BLASLONG M, BLASLONG N, IFLOAT *input_matrix0, IFLOAT *input_matrix1,
-           FLOAT *output0, FLOAT *output1, FLOAT alpha)
+int verify(int test, int orient, BLASLONG M, BLASLONG N, BLASLONG K, IFLOAT *input_matrix0,
+           IFLOAT *input_matrix1, FLOAT *output0, FLOAT *output1, FLOAT alpha)
 #else
 int verify(int test, int orient, BLASLONG M, BLASLONG N, BLASLONG out, FLOAT *input_matrix1,
            FLOAT *input_vector1, FLOAT *output0, FLOAT *output1, FLOAT *output2, FLOAT alpha, FLOAT beta,
@@ -653,9 +679,9 @@ int verify(int test, int orient, BLASLONG M, BLASLONG N, BLASLONG out, FLOAT *in
 #endif
 {
 #ifdef TEST_MATRIX
-  FLOAT tol = ((FLOAT)((orient == TEST_NOTRANSPOSE) ? N : M) * TRANS_EPSILON) / BF16_EPSILON;
+  FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * K * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
 
-  if (verifyOut(output0, output1, tol, M, N, TEST_TYPE)) {
+  if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE)) {
 #else
   int test2 = TEST_RVV;
   FLOAT tol = (FLOAT)((orient == TEST_NOTRANSPOSE) ? ((test <= test2) ? 0 : N) : M * TRANS_EPSILON) / BF16_EPSILON;
@@ -826,7 +852,8 @@ int main(int argc, char **argv)
   funcGEMM *test3_ptr = ((test == TEST_OPENBLAS) ? OLD_BF16_GEMM : NULL);
 #endif
 #ifndef TEST_BFLOAT
-  funcPACK *pack_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_T : FP3264_PACK_N);
+  funcPACK *packm_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_MT : FP3264_PACK_MN);
+  funcPACK *packn_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_NT : FP3264_PACK_NN);
 #else
   funcPACK *pack_ptr = ((orient != TEST_NOTRANSPOSE) ? BF16_PACK_T : BF16_PACK_N);
 #endif
@@ -835,7 +862,7 @@ int main(int argc, char **argv)
 #ifdef VERIFY_OPENBLAS
      ((test_ptr == NULL) &&
      ((test == TEST_OPENBLAS) && (test2_ptr == NULL)) ||
-     ((test == TEST_OPENBLAS) && (test3_ptr == NULL) && (pack_ptr == NULL)))
+     ((test == TEST_OPENBLAS) && (test3_ptr == NULL)))
 #else
      (test_ptr == NULL)
 #endif
@@ -847,6 +874,9 @@ int main(int argc, char **argv)
   for (BLASLONG size = (all) ? 1 : M; size <= M; size += 1) {
     if ((all == 1) || (argc < 4)) {
       N = size;
+#ifdef TEST_MATRIX
+      K = size;
+#endif
     }
     
     BLASLONG M0 = size;
@@ -863,24 +893,31 @@ int main(int argc, char **argv)
 #endif
     IFLOAT *input_matrix0 = NULL, *input_matrix1 = NULL;
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)
-    IFLOAT *input_matrix2 = NULL;
+    IFLOAT *input_matrix01 = NULL, *input_matrix11 = NULL;
 #endif
 
-    input_matrix0 = (IFLOAT *)malloc(out * K * sizeof(IFLOAT));
+    input_matrix0 = (IFLOAT *)malloc(in * K * sizeof(IFLOAT));
     if (input_matrix0 == NULL) {
       fprintf(stderr, "Bad malloc\n");
       return 1;
     }
-    input_matrix1 = (IFLOAT *)malloc(K * in * sizeof(IFLOAT));
+    input_matrix1 = (IFLOAT *)malloc(K * out * sizeof(IFLOAT));
     if (input_matrix1 == NULL) {
       fprintf(stderr, "Bad malloc\n");
       return 1;
     }
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)
-    input_matrix2 = (IFLOAT *)malloc(K * in * sizeof(IFLOAT));
-    if (input_matrix2 == NULL) {
-      fprintf(stderr, "Bad malloc\n");
-      return 1;
+    if (test >= TEST_RVV) {
+      input_matrix01 = (IFLOAT *)malloc(in * K * sizeof(IFLOAT));
+      if (input_matrix01 == NULL) {
+        fprintf(stderr, "Bad malloc\n");
+        return 1;
+      }
+      input_matrix11 = (IFLOAT *)malloc(K * out * sizeof(IFLOAT));
+      if (input_matrix11 == NULL) {
+        fprintf(stderr, "Bad malloc\n");
+        return 1;
+      }
     }
 #endif
 #ifdef TEST_MATRIX
@@ -902,14 +939,13 @@ int main(int argc, char **argv)
 #endif
 
 #ifdef TEST_MATRIX
-    init(input_matrix0, input_matrix1, output_matrix0, M0, N0, K);
+    init(input_matrix0, input_matrix1, output_matrix0, in, out, K);
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
 #else
     init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, out);
 #endif
 #ifdef TEST_MATRIX
-    pack_ptr(in, K, input_matrix1, in, input_matrix2);
-    gen_ptr(out, in, K, alpha, input_matrix0, input_matrix1, output_matrix0, out);
+    gen_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix0, in);
 #else
     gen_ptr(M0, N0, input_matrix0, input_vector0, output0, alpha, beta, input);
 #endif
@@ -921,8 +957,18 @@ int main(int argc, char **argv)
       if (test <= TEST_RVV) {
 #ifdef TEST_MATRIX
         memcpy(output_matrix1, output_matrix2, M0 * N0 * sizeof(FLOAT));
-        pack_ptr(in, K, input_matrix1, in, input_matrix2);
-        test_ptr(out, K, in, alpha, input_matrix0, input_matrix1, output_matrix1, out);
+        if (test == TEST_RVV) {
+          if (orient == TEST_TRANSPOSE) {
+            packm_ptr(K, in, input_matrix0, in, input_matrix01);
+            packn_ptr(K, out, input_matrix1, out, input_matrix11);
+          } else {
+            packm_ptr(K, in, input_matrix0, K, input_matrix01);
+            packn_ptr(K, out, input_matrix1, K, input_matrix11);
+          }
+          test_ptr(in, out, K, alpha, input_matrix01, input_matrix11, output_matrix1, in);
+        } else {
+          test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
+        }
 #else
         test_ptr(M0, N0, input_matrix0, input_vector0, output1, alpha, beta, input);
 #endif
@@ -934,7 +980,7 @@ int main(int argc, char **argv)
         }
 #ifdef VERIFY_MATRIX
         else if (test3_ptr && (test == TEST_OPENBLAS)) {
-          verifyGEMM(test3_ptr, pack_ptr, orient, M0, N0, out, input_matrix0, input_vector0, output1, input_matrix2, alpha, input, beta);
+          verifyGEMM(test3_ptr, packm_ptr, orient, M0, N0, out, input_matrix0, input_vector0, output1, input_matrix1, alpha, input, beta);
         }
 #endif
       }
@@ -946,7 +992,7 @@ int main(int argc, char **argv)
     }
 
 #ifdef TEST_MATRIX
-    if (verify(test, orient, M0, N0, input_matrix0, input_matrix2, output_matrix0, output_matrix1, alpha)) {
+    if (verify(test, orient, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
 #else
     if (verify(test, orient, M0, N0, out, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input)) {
 #endif
@@ -955,7 +1001,7 @@ int main(int argc, char **argv)
 
 #ifdef VERIFY_OPENBLAS
     if (test == TEST_RVV) {
-      if (verifyOpenBLAS(orient, M0, N0, out, input_matrix1, input_vector0, input_matrix2, output1, output2, alpha, beta, input, inc)) {
+      if (verifyOpenBLAS(orient, M0, N0, out, input_matrix1, input_vector0, input_matrix1, output1, output2, alpha, beta, input, inc)) {
         return 1;
       }
     }
@@ -964,7 +1010,10 @@ int main(int argc, char **argv)
     free(input_matrix0);
     free(input_matrix1);
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)
-    free(input_matrix2);
+    if (test >= TEST_RVV) {
+      free(input_matrix01);
+      free(input_matrix11);
+    }
 #endif
 #ifdef TEST_MATRIX
     free(output_matrix0);
@@ -974,7 +1023,11 @@ int main(int argc, char **argv)
   }
 
   if (all) {
+#ifdef TEST_MATRIX
+    FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * K * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+#else
     FLOAT tol = (FLOAT)((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M * TRANS_EPSILON) / BF16_EPSILON;
+#endif
     printf("All %s tests successful from %4d to %4ld (%4ld %8.6f)\n\n", (all == 2) ? "rectangular" : "square", 1, M, N, tol);
   }
 
