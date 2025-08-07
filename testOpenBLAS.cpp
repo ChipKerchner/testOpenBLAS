@@ -24,7 +24,7 @@
 #define VERIFY_MATRIX        // Verfiy GEMV versus GEMM
 #endif
 
-#ifdef VERFIY_MATRIX
+#ifdef VERIFY_MATRIX
 //#define VERIFY_OPENBLAS      // Verify versus OpenBLAS code
 //#define TEST_SMALL_MATRIX    // Use small matrix (no packing)
 #endif
@@ -39,6 +39,7 @@
 #else
 #define TEST_MAX         TEST_RVV
 #endif
+#define TEST_RVV_SMALL   (TEST_MAX + 1)
 
 #define TEST_NOTRANSPOSE 0
 #define TEST_TRANSPOSE   1
@@ -133,7 +134,15 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #ifndef TEST_BFLOAT
 #define CNAME  FP3264_PACK_MN
 #if GEMM_UNROLL_M == 16
+#ifdef VECTORIZE_PACK
+//#include "gemm_ncopy_16_rvv.c"
 #include "gemm_ncopy_16.c"
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VSEV_FLOAT
+#else
+#include "gemm_ncopy_16.c"
+#endif
 #else
 #ifdef VECTORIZE_PACK
 #include "gemm_ncopy_8_rvv.c"
@@ -158,7 +167,15 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 
 #define CNAME  FP3264_PACK_MT
 #if GEMM_UNROLL_M == 16
+#ifdef VECTORIZE_PACK
+//#include "gemm_tcopy_16_rvv.c"
 #include "gemm_tcopy_16.c"
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VSEV_FLOAT
+#else
+#include "gemm_tcopy_16.c"
+#endif
 #else
 #ifdef VECTORIZE_PACK
 #include "gemm_tcopy_8_rvv.c"
@@ -182,10 +199,15 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #undef CNAME
 
 #ifdef TEST_SMALL_MATRIX
+#define CNAME  FP3264GEMM_N_RVV_SMALL
+#undef CNAME
+#define CNAME  FP3264GEMM_T_RVV_SMALL
+#undef CNAME
+#undef
 #ifdef TEST_FLOAT
-#define CNAME  SGEMM_SMALL_M_PERMIT
+#define CNAME  GEMM_SMALL_M_PERMIT
 #elif defined(TEST_DOUBLE)
-#define CNAME  DGEMM_SMALL_M_PERMIT
+#define CNAME  FP3264GEMM_N_RVV
 #endif
 #include "gemm_small_kernel_permit_riscv64.c"
 #endif
@@ -214,6 +236,12 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #endif
 #endif
 #undef CNAME
+
+#ifdef VERIFY_MATRIX
+#define CNAME  OLD_GEMM_N
+#include "gemmkernel_2x2.c"
+#undef CNAME
+#endif
 
 FORCEINLINE timer_t get_rvv_timer()
 {
@@ -501,7 +529,7 @@ func *func_ptr(int test, int orient)
 #ifndef TEST_BFLOAT
           return FP3264GEMV_N_generic;
 #else
-  return BF16GEMV_N_generic;
+          return BF16GEMV_N_generic;
 #endif
 #endif
           break;
@@ -520,6 +548,10 @@ func *func_ptr(int test, int orient)
 #endif
 #endif
           break;
+#ifdef TEST_SMALL_MATRIX
+        case TEST_RVV_SMALL:
+          return FP3264GEMM_N_RVV_SMALL;
+#endif
       }
       break;
     case TEST_TRANSPOSE:
@@ -554,6 +586,10 @@ func *func_ptr(int test, int orient)
 #endif
 #endif
           break;
+#ifdef TEST_SMALL_MATRIX
+        case TEST_RVV_SMALL:
+          return FP3264GEMM_T_RVV_SMALL;
+#endif
       }
       break;
   }
@@ -788,6 +824,21 @@ int verify(int test, int orient, BLASLONG M, BLASLONG N, BLASLONG out, FLOAT *in
 }
 
 #ifdef VERIFY_OPENBLAS
+void BF16GEMV_N_beta(BLASLONG n, FLOAT *output_vector, FLOAT *input_vector, FLOAT beta)
+{
+  if (beta == (FLOAT)0) {
+    memset(output_vector, 0, sizeof(FLOAT) * n);
+  } else if (beta == (FLOAT)1) {
+    if (output_vector != input_vector) {
+      memcpy(output_vector, input_vector, sizeof(FLOAT) * n);
+    }
+  } else {
+    for (BLASLONG i = 0; i < n; i++) {
+       output_vector[i] = input_vector[i] * beta;
+    }
+  }
+}
+
 void verifyGEMV(funcGEMV *test_ptr, int orient, BLASLONG M, BLASLONG N, BLASLONG out,
            IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output2, FLOAT alpha, FLOAT beta,
            FLOAT *input, BLASLONG inc)
@@ -928,6 +979,9 @@ int main(int argc, char **argv)
 
   func *gen_ptr = func_ptr(TEST_GENERIC, orient);
   func *test_ptr = func_ptr(test, orient);
+#ifdef TEST_SMALL_MATRIX
+  func *small_ptr = func_ptr(TEST_RVV_SMALL, orient);
+#endif
 #ifdef VERIFY_OPENBLAS
 #ifdef TEST_MATRIX
   funcGEMM *test2_ptr = ((test == TEST_OPENBLAS) ? ((orient == TEST_NOTRANSPOSE) ? NEW_BF16_GEMV_N : NEW_BF16_GEMV_T) : NULL);
@@ -1043,14 +1097,21 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
         memcpy(output_matrix1, output_matrix2, M0 * N0 * sizeof(FLOAT));
         if (test == TEST_RVV) {
-          if (orient == TEST_TRANSPOSE) {
-            packm_ptr(K, in, input_matrix0, in, input_matrix01);
-            packn_ptr(K, out, input_matrix1, out, input_matrix11);
-          } else {
-            packm_ptr(K, in, input_matrix0, K, input_matrix01);
-            packn_ptr(K, out, input_matrix1, K, input_matrix11);
+#ifdef TEST_SMALL_MATRIX
+          if (GEMM_SMALL_M_PERMIT(orient, orient, in, out, K, alpha, 0.0) && 0) {
+            small_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
+          } else
+#endif
+          {
+            if (orient == TEST_TRANSPOSE) {
+              packm_ptr(K, in, input_matrix0, in, input_matrix01);
+              packn_ptr(K, out, input_matrix1, out, input_matrix11);
+            } else {
+              packm_ptr(K, in, input_matrix0, K, input_matrix01);
+              packn_ptr(K, out, input_matrix1, K, input_matrix11);
+            }
+            test_ptr(in, out, K, alpha, input_matrix01, input_matrix11, output_matrix1, in);
           }
-          test_ptr(in, out, K, alpha, input_matrix01, input_matrix11, output_matrix1, in);
         } else {
           test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
         }
