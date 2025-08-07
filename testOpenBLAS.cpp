@@ -26,8 +26,10 @@
 
 #ifdef VERFIY_MATRIX
 //#define VERIFY_OPENBLAS      // Verify versus OpenBLAS code
-//#define TEST_SMALL_MATRIX
+//#define TEST_SMALL_MATRIX    // Use small matrix (no packing)
 #endif
+
+#define VECTORIZE_PACK  // Use vectorize packing (if available)
 
 #define TEST_GENERIC     0   // Generic C code
 #define TEST_RVV         1   // Vectorized RVV code
@@ -133,22 +135,50 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #if GEMM_UNROLL_M == 16
 #include "gemm_ncopy_16.c"
 #else
+#ifdef VECTORIZE_PACK
+#include "gemm_ncopy_8_rvv.c"
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VSEV_FLOAT
+#else
 #include "gemm_ncopy_8.c"
+#endif
 #endif
 #undef CNAME
 #define CNAME  FP3264_PACK_NN
+#ifdef VECTORIZE_PACK
+#include "gemm_ncopy_8_rvv.c"
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VSEV_FLOAT
+#else
 #include "gemm_ncopy_8.c"
+#endif
 #undef CNAME
 
 #define CNAME  FP3264_PACK_MT
 #if GEMM_UNROLL_M == 16
 #include "gemm_tcopy_16.c"
 #else
+#ifdef VECTORIZE_PACK
+#include "gemm_tcopy_8_rvv.c"
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VSEV_FLOAT
+#else
 #include "gemm_tcopy_8.c"
+#endif
 #endif
 #undef CNAME
 #define CNAME  FP3264_PACK_NT
+#ifdef VECTORIZE_PACK
+#include "gemm_tcopy_8_rvv.c"
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VSEV_FLOAT
+#else
 #include "gemm_tcopy_8.c"
+#endif
 #undef CNAME
 
 #ifdef TEST_SMALL_MATRIX
@@ -419,6 +449,33 @@ int FP3264GEMM_T_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT*
 
 int BF16GEMM_N_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
+  for (BLASLONG j = 0; j < N; j++) {
+    BLASLONG line2 = j * K;
+    for (BLASLONG i = 0; i < M; i++) {
+      FLOAT t = 0;
+      BLASLONG line = i * K;
+      for (BLASLONG k = 0; k < K; k++) {
+        t += bfloat16tof32(A[line + k]) * bfloat16tof32(B[line2 + k]);
+      }
+      C[i] += (t * alpha);
+    }
+    C += ldc;
+  }
+  return 0;
+}
+
+int BF16GEMM_T_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+{
+  for (BLASLONG j = 0; j < N; j++) {
+    for (BLASLONG i = 0; i < M; i++) {
+      FLOAT t = 0;
+      for (BLASLONG k = 0; k < K; k++) {
+        t += bfloat16tof32(A[k * M + i]) * bfloat16tof32(B[k * N + j]);
+      }
+      C[i] += (t * alpha);
+    }
+    C += ldc;
+  }
   return 0;
 }
 
@@ -491,9 +548,9 @@ func *func_ptr(int test, int orient)
 #endif
 #else
 #ifndef TEST_BFLOAT
-          return FP3264GEMV_T_RVV;
+          return FP3264GEMV_N_RVV;
 #else
-          return BF16GEMV_T_RVV;
+          return BF16GEMV_N_RVV;
 #endif
 #endif
           break;
