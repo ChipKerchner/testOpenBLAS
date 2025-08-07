@@ -26,6 +26,7 @@
 
 #ifdef VERFIY_MATRIX
 //#define VERIFY_OPENBLAS      // Verify versus OpenBLAS code
+//#define TEST_SMALL_MATRIX
 #endif
 
 #define TEST_GENERIC     0   // Generic C code
@@ -55,12 +56,15 @@
 
 #define bfloat16         unsigned short
 
+#define GEMM_UNROLL_N    8
 #ifdef TEST_FLOAT
 #define TEST_STR         "FP32"
 #define IFLOAT           float
+#define GEMM_UNROLL_M    16
 #elif defined(TEST_DOUBLE)
 #define TEST_STR         "FP64"
 #define IFLOAT           double
+#define GEMM_UNROLL_M    8
 #else
 #define TEST_STR         "BF16"
 #define IFLOAT           bfloat16
@@ -79,6 +83,12 @@
 #define BLASLONG         signed long
 #else
 #define BLASLONG         size_t
+#endif
+
+#if __clang__
+#define COMP_STR         "LLVM"
+#elif __GNUC__
+#define COMP_STR         "GCC"
 #endif
 
 #define timer_t          uint64_t
@@ -120,17 +130,35 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 
 #ifndef TEST_BFLOAT
 #define CNAME  FP3264_PACK_MN
+#if GEMM_UNROLL_M == 16
 #include "gemm_ncopy_16.c"
+#else
+#include "gemm_ncopy_8.c"
+#endif
 #undef CNAME
 #define CNAME  FP3264_PACK_NN
 #include "gemm_ncopy_8.c"
 #undef CNAME
 
 #define CNAME  FP3264_PACK_MT
+#if GEMM_UNROLL_M == 16
 #include "gemm_tcopy_16.c"
+#else
+#include "gemm_tcopy_8.c"
+#endif
 #undef CNAME
 #define CNAME  FP3264_PACK_NT
 #include "gemm_tcopy_8.c"
+#undef CNAME
+
+#ifdef TEST_SMALL_MATRIX
+#ifdef TEST_FLOAT
+#define CNAME  SGEMM_SMALL_M_PERMIT
+#elif defined(TEST_DOUBLE)
+#define CNAME  DGEMM_SMALL_M_PERMIT
+#endif
+#include "gemm_small_kernel_permit_riscv64.c"
+#endif
 #else
 // Temp
 #define BF16_PACK_MN ((funcPACK *)NULL)
@@ -836,7 +864,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  printf("Testing %s %s ", TEST_STR, TEST_TYPE);
+  printf("Testing %s %s %s ", COMP_STR, TEST_STR, TEST_TYPE);
   printf("%d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld\n\n", test, orient, M, N, K, iter, alpha, beta, inc);
 
   rand_seed((unsigned int)(get_rvv_timer()));
