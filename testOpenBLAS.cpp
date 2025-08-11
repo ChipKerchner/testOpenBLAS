@@ -6,6 +6,11 @@
 #include <math.h>
 #include <float.h>
 
+#define RVV_256       // Test 256-bit RVV
+#ifndef RVV_256
+#define RVV_128       // Test 128-bit RVV
+#endif
+
 #define TEST_MATRIX   // Test GEMM
 #ifndef TEST_MATRIX
 #define TEST_VECTOR   // Test GEMV
@@ -59,15 +64,24 @@
 
 #define bfloat16         unsigned short
 
-#define GEMM_UNROLL_N    8
 #ifdef TEST_FLOAT
 #define TEST_STR         "FP32"
 #define IFLOAT           float
+#define GEMM_UNROLL_N    8
+#ifdef RVV_256
 #define GEMM_UNROLL_M    16
+#else
+#define GEMM_UNROLL_M    8
+#endif
 #elif defined(TEST_DOUBLE)
 #define TEST_STR         "FP64"
 #define IFLOAT           double
 #define GEMM_UNROLL_M    8
+#ifdef RVV_256
+#define GEMM_UNROLL_N    8
+#else
+#define GEMM_UNROLL_N    4
+#endif
 #else
 #define TEST_STR         "BF16"
 #define IFLOAT           bfloat16
@@ -120,11 +134,19 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #ifdef TEST_MATRIX
 #ifdef TEST_FLOAT
 #define CNAME  FP3264GEMM_N_RVV
+#ifdef RVV_256
 #include "sgemm_kernel_16x8_zvl256b.c"
+#else
+#include "sgemm_kernel_8x8_zvl128b.c"
+#endif
 #undef CNAME
 #elif defined(TEST_DOUBLE)
 #define CNAME  FP3264GEMM_N_RVV
+#ifdef RVV_256
 #include "dgemm_kernel_8x8_zvl256b.c"
+#else
+#include "dgemm_kernel_8x4_zvl128b.c"
+#endif
 #else
 #define CNAME  BF16GEMM_N_RVV
 #include "gemmkernel_2x2.c"
@@ -155,6 +177,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #endif
 #undef CNAME
 #define CNAME  FP3264_PACK_NN
+#if GEMM_UNROLL_N == 8
 #ifdef VECTORIZE_PACK
 #include "gemm_ncopy_8_rvv.c"
 #undef FLOAT_V_T
@@ -163,16 +186,28 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #else
 #include "gemm_ncopy_8.c"
 #endif
+#else
+#ifdef VECTORIZE_PACK
+#include "gemm_ncopy_4_rvv.c"
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VSEV_FLOAT
+#else
+#include "gemm_ncopy_4.c"
+#endif
+#endif
 #undef CNAME
 
 #define CNAME  FP3264_PACK_MT
 #if GEMM_UNROLL_M == 16
 #ifdef VECTORIZE_PACK
-//#include "gemm_tcopy_16_rvv.c"
-#include "gemm_tcopy_16.c"
+#include "gemm_tcopy_16_rvv.c"
 #undef FLOAT_V_T
+#undef FLOAT_V_T_HALF
 #undef VLEV_FLOAT
+#undef VLEV_FLOAT_HALF
 #undef VSEV_FLOAT
+#undef VSEV_FLOAT_HALF
 #else
 #include "gemm_tcopy_16.c"
 #endif
@@ -188,6 +223,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #endif
 #undef CNAME
 #define CNAME  FP3264_PACK_NT
+#if GEMM_UNROLL_N == 8
 #ifdef VECTORIZE_PACK
 #include "gemm_tcopy_8_rvv.c"
 #undef FLOAT_V_T
@@ -195,6 +231,16 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #undef VSEV_FLOAT
 #else
 #include "gemm_tcopy_8.c"
+#endif
+#else
+#ifdef VECTORIZE_PACK
+#include "gemm_tcopy_4_rvv.c"
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VSEV_FLOAT
+#else
+#include "gemm_tcopy_4.c"
+#endif
 #endif
 #undef CNAME
 
