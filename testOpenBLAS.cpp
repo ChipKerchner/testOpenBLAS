@@ -157,8 +157,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #define CNAME  FP3264_PACK_MN
 #if GEMM_UNROLL_M == 16
 #ifdef VECTORIZE_PACK
-//#include "gemm_ncopy_16_rvv.c"
-#include "gemm_ncopy_16.c"
+#include "gemm_ncopy_16_rvv.c"
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
 #undef VSEV_FLOAT
