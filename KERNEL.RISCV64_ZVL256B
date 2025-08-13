@@ -117,6 +117,16 @@ SGEMMINCOPYOBJ =  sgemm_incopy$(TSUFFIX).$(SUFFIX)
 SGEMMITCOPYOBJ =  sgemm_itcopy$(TSUFFIX).$(SUFFIX)
 endif
 
+SGEMM_SMALL_M_PERMIT = gemm_small_kernel_permit_riscv64.c
+SGEMM_SMALL_K_NN = sgemm_small_kernel_nn_riscv64.c
+SGEMM_SMALL_K_B0_NN = sgemm_small_kernel_nn_riscv64.c
+SGEMM_SMALL_K_NT = sgemm_small_kernel_nt_riscv64.c
+SGEMM_SMALL_K_B0_NT = sgemm_small_kernel_nt_riscv64.c
+SGEMM_SMALL_K_TN = sgemm_small_kernel_tn_riscv64.c
+SGEMM_SMALL_K_B0_TN = sgemm_small_kernel_tn_riscv64.c
+SGEMM_SMALL_K_TT = sgemm_small_kernel_tt_riscv64.c
+SGEMM_SMALL_K_B0_TT = sgemm_small_kernel_tt_riscv64.c
+
 DGEMMKERNEL    =  dgemm_kernel_$(DGEMM_UNROLL_M)x$(DGEMM_UNROLL_N)_zvl256b.c
 DGEMMONCOPY    =  ../generic/gemm_ncopy_$(DGEMM_UNROLL_N).c
 DGEMMOTCOPY    =  ../generic/gemm_tcopy_$(DGEMM_UNROLL_N).c
@@ -128,6 +138,16 @@ DGEMMITCOPY    =  ../generic/gemm_tcopy_$(DGEMM_UNROLL_M).c
 DGEMMINCOPYOBJ =  dgemm_incopy$(TSUFFIX).$(SUFFIX)
 DGEMMITCOPYOBJ =  dgemm_itcopy$(TSUFFIX).$(SUFFIX)
 endif
+
+DGEMM_SMALL_M_PERMIT = gemm_small_kernel_permit_riscv64.c
+DGEMM_SMALL_K_NN = dgemm_small_kernel_nn_riscv64.c
+DGEMM_SMALL_K_B0_NN = dgemm_small_kernel_nn_riscv64.c
+DGEMM_SMALL_K_NT = dgemm_small_kernel_nt_riscv64.c
+DGEMM_SMALL_K_B0_NT = dgemm_small_kernel_nt_riscv64.c
+DGEMM_SMALL_K_TN = dgemm_small_kernel_tn_riscv64.c
+DGEMM_SMALL_K_B0_TN = dgemm_small_kernel_tn_riscv64.c
+DGEMM_SMALL_K_TT = dgemm_small_kernel_tt_riscv64.c
+DGEMM_SMALL_K_B0_TT = dgemm_small_kernel_tt_riscv64.c
 
 CGEMMKERNEL    =  cgemm_kernel_$(CGEMM_UNROLL_M)x$(CGEMM_UNROLL_N)_zvl256b.c
 CGEMMONCOPY    =  ../generic/zgemm_ncopy_$(CGEMM_UNROLL_N).c

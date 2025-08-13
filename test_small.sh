@@ -1,0 +1,11 @@
+export SIZE=64
+
+./testOpenBLAS 0 0 0 $SIZE $SIZE $SIZE
+./testOpenBLAS 1 0 0 $SIZE $SIZE $SIZE
+./testOpenBLAS 0 0 1 $SIZE $SIZE $SIZE
+./testOpenBLAS 1 0 1 $SIZE $SIZE $SIZE
+./testOpenBLAS 0 1 0 $SIZE $SIZE $SIZE
+./testOpenBLAS 1 1 0 $SIZE $SIZE $SIZE
+./testOpenBLAS 0 1 1 $SIZE $SIZE $SIZE
+./testOpenBLAS 1 1 1 $SIZE $SIZE $SIZE
+
