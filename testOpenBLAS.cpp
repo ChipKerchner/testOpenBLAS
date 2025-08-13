@@ -36,6 +36,16 @@
 
 #define VECTORIZE_PACK  // Use vectorize packing (if available)
 
+#ifdef VECTORIZE_PACK
+#define VECTORIZE_PACK_N     // Vectorize n_copy
+#define VECTORIZE_PACK_T     // Vectorize t_copy
+#endif
+
+#ifdef TEST_DOUBLE
+#undef VECTORIZE_PACK_N
+#undef VECTORIZE_PACK_T
+#endif
+
 #define TEST_GENERIC     0   // Generic C code
 #define TEST_RVV         1   // Vectorized RVV code
 #ifdef VERIFY_OPENBLAS
@@ -156,7 +166,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #ifndef TEST_BFLOAT
 #define CNAME  FP3264_PACK_MN
 #if GEMM_UNROLL_M == 16
-#ifdef VECTORIZE_PACK
+#ifdef VECTORIZE_PACK_N
 #include "gemm_ncopy_16_rvv.c"
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
@@ -165,7 +175,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #include "gemm_ncopy_16.c"
 #endif
 #else
-#ifdef VECTORIZE_PACK
+#ifdef VECTORIZE_PACK_N
 #include "gemm_ncopy_8_rvv.c"
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
@@ -177,7 +187,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #undef CNAME
 #define CNAME  FP3264_PACK_NN
 #if GEMM_UNROLL_N == 8
-#ifdef VECTORIZE_PACK
+#ifdef VECTORIZE_PACK_N
 #include "gemm_ncopy_8_rvv.c"
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
@@ -186,7 +196,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #include "gemm_ncopy_8.c"
 #endif
 #else
-#ifdef VECTORIZE_PACK
+#ifdef VECTORIZE_PACK_N
 #include "gemm_ncopy_4_rvv.c"
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
@@ -199,7 +209,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 
 #define CNAME  FP3264_PACK_MT
 #if GEMM_UNROLL_M == 16
-#ifdef VECTORIZE_PACK
+#ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_16_rvv.c"
 #undef FLOAT_V_T
 #undef FLOAT_V_T_HALF
@@ -211,7 +221,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #include "gemm_tcopy_16.c"
 #endif
 #else
-#ifdef VECTORIZE_PACK
+#ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_8_rvv.c"
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
@@ -223,7 +233,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #undef CNAME
 #define CNAME  FP3264_PACK_NT
 #if GEMM_UNROLL_N == 8
-#ifdef VECTORIZE_PACK
+#ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_8_rvv.c"
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
@@ -232,7 +242,7 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #include "gemm_tcopy_8.c"
 #endif
 #else
-#ifdef VECTORIZE_PACK
+#ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_4_rvv.c"
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
@@ -244,9 +254,13 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 #undef CNAME
 
 #ifdef TEST_SMALL_MATRIX
-#define CNAME  FP3264GEMM_N_RVV_SMALL
+#define CNAME  FP3264GEMM_NN_RVV_SMALL
 #undef CNAME
-#define CNAME  FP3264GEMM_T_RVV_SMALL
+#define CNAME  FP3264GEMM_NT_RVV_SMALL
+#undef CNAME
+#define CNAME  FP3264GEMM_TN_RVV_SMALL
+#undef CNAME
+#define CNAME  FP3264GEMM_TT_RVV_SMALL
 #undef CNAME
 #undef
 #ifdef TEST_FLOAT
