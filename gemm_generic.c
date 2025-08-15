@@ -172,6 +172,38 @@ int FP3264GEMM_NN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT
   return 0;
 }
 
+int FP3264GEMM_NT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+{
+  for (BLASLONG j = 0; j < N; j++) {
+    for (BLASLONG i = 0; i < M; i++) {
+      FLOAT t = 0;
+      BLASLONG line = i * K;
+      for (BLASLONG k = 0; k < K; k++) {
+        t += A[line + k] * B[k * N + j];
+      }
+      C[i] += (t * alpha);
+    }
+    C += ldc;
+  }
+  return 0;
+}
+
+int FP3264GEMM_TN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+{
+  for (BLASLONG j = 0; j < N; j++) {
+    BLASLONG line2 = j * K;
+    for (BLASLONG i = 0; i < M; i++) {
+      FLOAT t = 0;
+      for (BLASLONG k = 0; k < K; k++) {
+        t += A[k * M + i] * B[line2 + k];
+      }
+      C[i] += (t * alpha);
+    }
+    C += ldc;
+  }
+  return 0;
+}
+
 int FP3264GEMM_TT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
   for (BLASLONG j = 0; j < N; j++) {

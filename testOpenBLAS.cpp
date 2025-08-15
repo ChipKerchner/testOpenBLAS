@@ -52,13 +52,13 @@
 #ifdef RVV_256
 #define RVV_VLENB        32
 
-#ifndef RISCV64_ZVL256B
+#if __riscv_v_min_vlen != 256
 #warning "Better to compile with ZVL256B"
 #endif
 #else
 #define RVV_VLENB        16
 
-#ifndef RISCV64_ZVL128B
+#if __riscv_v_min_vlen != 128
 #warning "Better to compile with ZVL128B"
 #endif
 #endif
@@ -85,7 +85,6 @@
 #define TEST_ITER        100
 
 #define TEST_ALPHA       2.0
-#define TEST_BETA        4.0
 
 #define TEST_INC         1
 
@@ -149,11 +148,6 @@
 
 #define NBMAX            4096
 
-#ifndef __clang__
-//#pragma GCC diagnostic push
-//#pragma GCC diagnostic ignored "-Waggressive-loop-optimizations"
-#endif
-
 typedef int funcGEMV(BLASLONG, BLASLONG, FLOAT, IFLOAT *, BLASLONG, IFLOAT *, BLASLONG, FLOAT, FLOAT *, BLASLONG);
 typedef int funcGEMM(BLASLONG, BLASLONG, BLASLONG, FLOAT, IFLOAT *, IFLOAT *, FLOAT *, BLASLONG);
 typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
@@ -164,6 +158,16 @@ typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 typedef int funcGEMMsmall(BLASLONG, BLASLONG, BLASLONG, IFLOAT *, BLASLONG, FLOAT, IFLOAT *, BLASLONG, FLOAT *, BLASLONG);
 #else
 typedef int funcGEMMsmall(BLASLONG, BLASLONG, BLASLONG, IFLOAT *, BLASLONG, FLOAT, IFLOAT *, BLASLONG, FLOAT, FLOAT *, BLASLONG);
+#endif
+
+#ifdef TEST_MATRIX
+#ifdef B0
+#define TEST_BETA        0.0
+#else
+#define TEST_BETA        1.0
+#endif
+#else
+#define TEST_BETA        4.0
 #endif
 
 FORCEINLINE timer_t get_rvv_timer()
@@ -228,7 +232,7 @@ func *func_ptr(int test, int orient, int orient2)
           if (orient2 == TEST_NOTRANSPOSE) {
             return FP3264GEMM_NN_generic;
           } else {
-            return FP3264GEMM_NN_generic;
+            return FP3264GEMM_NT_generic;
           }
 #else
           return BF16GEMM_N_generic;
@@ -264,7 +268,7 @@ func *func_ptr(int test, int orient, int orient2)
 #ifdef TEST_MATRIX
 #ifndef TEST_BFLOAT
           if (orient2 == TEST_NOTRANSPOSE) {
-            return FP3264GEMM_TT_generic;
+            return FP3264GEMM_TN_generic;
           } else {
             return FP3264GEMM_TT_generic;
           }
@@ -310,7 +314,7 @@ funcGEMMsmall *func_small_ptr(int test, int orient, int orient2)
           if (orient2 == TEST_NOTRANSPOSE) {
             return FP3264GEMM_TN_RVV_SMALL;
           } else {
-            return FP3264GEMM_TN_RVV_SMALL;
+            return FP3264GEMM_TT_RVV_SMALL;
           }
 #endif
       }
@@ -320,7 +324,7 @@ funcGEMMsmall *func_small_ptr(int test, int orient, int orient2)
 #ifdef TEST_SMALL_MATRIX
         case TEST_RVV_SMALL:
           if (orient2 == TEST_NOTRANSPOSE) {
-            return FP3264GEMM_NT_RVV_SMALL;
+            return FP3264GEMM_NN_RVV_SMALL;
           } else {
             return FP3264GEMM_NT_RVV_SMALL;
           }
@@ -679,10 +683,12 @@ int main(int argc, char **argv)
               K = atol(argv[6]);
               if (argc > 7) {
                 iter = atoi(argv[7]);
-                 if (argc > 8) {
-                   alpha = atof(argv[8]);
-                   if (argc > 9) {
-                     beta = atof(argv[9]);
+                if (argc > 8) {
+                  alpha = atof(argv[8]);
+                  if (argc > 9) {
+#ifndef TEST_MATRIX
+                    beta = atof(argv[9]);
+#endif
                     if (argc > 10) {
                       inc = atol(argv[10]);
                     }
@@ -743,8 +749,14 @@ int main(int argc, char **argv)
   funcGEMM *test3_ptr = ((test == TEST_OPENBLAS) ? OLD_BF16_GEMM : NULL);
 #endif
 #ifndef TEST_BFLOAT
-  funcPACK *packm_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_MT : FP3264_PACK_MN);
-  funcPACK *packn_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_NT : FP3264_PACK_NN);
+  funcPACK *packm_ptr, *packn_ptr;
+  if (orient == orient2) {
+    packm_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_MT : FP3264_PACK_MN);
+    packn_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_NT : FP3264_PACK_NN);
+  } else {
+    packm_ptr = ((orient2 != TEST_NOTRANSPOSE) ? FP3264_PACK_MN : FP3264_PACK_MT);
+    packn_ptr = ((orient2 != TEST_NOTRANSPOSE) ? FP3264_PACK_NT : FP3264_PACK_NN);
+  }
 #else
   funcPACK *pack_ptr = ((orient != TEST_NOTRANSPOSE) ? BF16_PACK_T : BF16_PACK_N);
 #endif
@@ -755,6 +767,9 @@ int main(int argc, char **argv)
      ((test == TEST_OPENBLAS) && (test2_ptr == NULL)) ||
      ((test == TEST_OPENBLAS) && (test3_ptr == NULL)))
 #else
+#ifdef TEST_SMALL_MATRIX
+     (small_ptr == NULL) ||
+#endif
      (test_ptr == NULL)
 #endif
      ) {
@@ -859,9 +874,9 @@ int main(int argc, char **argv)
             }
 #else
             if (orient == TEST_TRANSPOSE) {
-              small_ptr(in, out, K, input_matrix0, in, alpha, input_matrix1, out, 1.0, output_matrix1, in);
+              small_ptr(in, out, K, input_matrix0, in, alpha, input_matrix1, out, beta, output_matrix1, in);
             } else {
-              small_ptr(in, out, K, input_matrix0, K, alpha, input_matrix1, K, 1.0, output_matrix1, in);
+              small_ptr(in, out, K, input_matrix0, K, alpha, input_matrix1, K, beta, output_matrix1, in);
             }
 #endif
           } else

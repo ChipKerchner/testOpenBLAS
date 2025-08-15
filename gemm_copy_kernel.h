@@ -113,32 +113,16 @@
 #ifdef TEST_SMALL_MATRIX
 //#define B0  // Beta = 0
 #define CNAME  FP3264GEMM_NN_RVV_SMALL
-#ifdef TEST_FLOAT
-#include "sgemm_small_kernel_nn_rvv.c"
-#else
-#include "dgemm_small_kernel_nn_rvv.c"
-#endif
+#include "gemm_small_kernel_nn_rvv.c"
 #undef CNAME
 #define CNAME  FP3264GEMM_NT_RVV_SMALL
-#ifdef TEST_FLOAT
-#include "sgemm_small_kernel_nt_rvv.c"
-#else
-#include "dgemm_small_kernel_nt_rvv.c"
-#endif
+#include "gemm_small_kernel_nt_rvv.c"
 #undef CNAME
 #define CNAME  FP3264GEMM_TN_RVV_SMALL
-#ifdef TEST_FLOAT
-#include "sgemm_small_kernel_tn_rvv.c"
-#else
-#include "dgemm_small_kernel_tn_rvv.c"
-#endif
+#include "gemm_small_kernel_tn_rvv.c"
 #undef CNAME
 #define CNAME  FP3264GEMM_TT_RVV_SMALL
-#ifdef TEST_FLOAT
-#include "sgemm_small_kernel_tt_rvv.c"
-#else
-#include "dgemm_small_kernel_tt_rvv.c"
-#endif
+#include "gemm_small_kernel_tt_rvv.c"
 #undef CNAME
 
 #define CNAME  GEMM_SMALL_M_PERMIT
