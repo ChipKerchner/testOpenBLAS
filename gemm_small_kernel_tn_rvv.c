@@ -33,27 +33,28 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, IFLOAT * A, BLASLONG lda, FLOAT al
 int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, IFLOAT * A, BLASLONG lda, FLOAT alpha, IFLOAT * B, BLASLONG ldb, FLOAT beta, FLOAT * C, BLASLONG ldc)
 #endif
 {
-        //naive implemtation
-        //Column major
+    //naive implemtation
+    //Column major
 
-        BLASLONG i,j,k;
-        FLOAT result=0.0;
+    BLASLONG i, j, k;
+    FLOAT result = 0.0;
 
-        for(i=0; i<M; i++){
-                BLASLONG line = i*lda;
-                for(j=0; j<N; j++){
-                        BLASLONG line2 = j*ldb;
-                        result=0.0;
-                        for(k=0; k<K; k++){
-                                result += A[line+k] * B[line2+k];
-                        }
+    for (j = 0; j < N; j++) {
+        BLASLONG line2 = j * ldb;
+        for (i = 0; i < M; i++) {
+            BLASLONG line = i * lda;
+            result = 0.0;
+            for (k = 0; k < K; k++) {
+                result += A[line + k] * B[line2 + k];
+            }
 #ifdef B0
-                        C[i+j*ldc]=alpha * result;
+            C[i] = alpha * result;
 #else
-                        C[i+j*ldc]=C[i+j*ldc] * beta + alpha * result;
+            C[i] = C[i] * beta + alpha * result;
 #endif
-                }
         }
+	C += ldc;
+    }
 
-        return 0;
+    return 0;
 }

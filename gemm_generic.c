@@ -155,6 +155,21 @@ int BF16GEMV_N_RVV(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *input_v
 }
 #endif
 
+void BF16GEMM_beta(BLASLONG M, BLASLONG N, FLOAT *output_vector, FLOAT *input_vector, FLOAT beta)
+{
+  if (beta == (FLOAT)0) {
+    memset(output_vector, 0, sizeof(FLOAT) * M * N);
+  } else if (beta == (FLOAT)1) {
+    if (output_vector != input_vector) {
+      memcpy(output_vector, input_vector, sizeof(FLOAT) * M * N);
+    }
+  } else {
+    for (BLASLONG i = 0; i < M * N; i++) {
+       output_vector[i] = input_vector[i] * beta;
+    }
+  }
+}
+
 int FP3264GEMM_NN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
   for (BLASLONG j = 0; j < N; j++) {
