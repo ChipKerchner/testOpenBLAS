@@ -66,7 +66,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VLSSEG2_FLOAT           __riscv_vlsseg2e64_v_f64m1x2
 #define VLSSEG4_FLOAT           __riscv_vlsseg4e64_v_f64m1x4
 #define VLSSEG8_FLOAT           __riscv_vlsseg8e64_v_f64m1x8
-#define VCREATE_V4              __riscv_vcreate_v_f64m1_f64m8
+#define VCREATE_V4              __riscv_vcreate_v_f64m1_f64m4
 #define VCREATE_V8              __riscv_vcreate_v_f64m1_f64m8
 #define VGET_VX2                __riscv_vget_v_f64m1x2_f64m1
 #define VGET_VX4                __riscv_vget_v_f64m1x4_f64m1
