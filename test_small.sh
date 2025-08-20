@@ -1,11 +1,12 @@
 export SIZE=64
+export ITER=100
 
-./testOpenBLAS 0 0 0 $SIZE $SIZE $SIZE
-./testOpenBLAS 1 0 0 $SIZE $SIZE $SIZE
-./testOpenBLAS 0 0 1 $SIZE $SIZE $SIZE
-./testOpenBLAS 1 0 1 $SIZE $SIZE $SIZE
-./testOpenBLAS 0 1 0 $SIZE $SIZE $SIZE
-./testOpenBLAS 1 1 0 $SIZE $SIZE $SIZE
-./testOpenBLAS 0 1 1 $SIZE $SIZE $SIZE
-./testOpenBLAS 1 1 1 $SIZE $SIZE $SIZE
+./testOpenBLAS 0 0 0 $SIZE $SIZE $SIZE $ITER
+./testOpenBLAS 1 0 0 $SIZE $SIZE $SIZE $ITER
+./testOpenBLAS 0 0 1 $SIZE $SIZE $SIZE $ITER
+./testOpenBLAS 1 0 1 $SIZE $SIZE $SIZE $ITER
+./testOpenBLAS 0 1 0 $SIZE $SIZE $SIZE $ITER
+./testOpenBLAS 1 1 0 $SIZE $SIZE $SIZE $ITER
+./testOpenBLAS 0 1 1 $SIZE $SIZE $SIZE $ITER
+./testOpenBLAS 1 1 1 $SIZE $SIZE $SIZE $ITER
 

@@ -36,7 +36,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define FLOAT_V2_T              vfloat32m2_t
 #define FLOAT_V4_T              vfloat32m4_t
 #define FLOAT_V8_T              vfloat32m8_t
-#define VLSEG_FLOAT             __riscv_vlse32_v_f32m2
+#define VLSEG2_FLOAT            __riscv_vlse32_v_f32m2
 #define VLSSEG2_FLOAT           __riscv_vlsseg2e32_v_f32m1x2
 #define VLSSEG4_FLOAT           __riscv_vlsseg4e32_v_f32m1x4
 #define VLSSEG8_FLOAT           __riscv_vlsseg8e32_v_f32m1x8
@@ -65,7 +65,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define FLOAT_V2_T              vfloat64m2_t
 #define FLOAT_V4_T              vfloat64m4_t
 #define FLOAT_V8_T              vfloat64m8_t
-#define VLSEG_FLOAT             __riscv_vlse64_v_f64m2
+#define VLSEG2_FLOAT            __riscv_vlse64_v_f64m2
 #define VLSSEG2_FLOAT           __riscv_vlsseg2e64_v_f64m1x2
 #define VLSSEG4_FLOAT           __riscv_vlsseg4e64_v_f64m1x4
 #define VLSSEG8_FLOAT           __riscv_vlsseg8e64_v_f64m1x8
@@ -201,7 +201,7 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT *a, BLASLONG lda, FLOAT *b)
             }
 
             if (m & 1) {
-                v20 = VLSEG_FLOAT(a_offset1, lda * sizeof(FLOAT), vl * 2);
+                v20 = VLSEG2_FLOAT(a_offset1, lda * sizeof(FLOAT), vl * 2);
 
                 VSEV2_FLOAT(b_offset, v20, vl * 2);
 
