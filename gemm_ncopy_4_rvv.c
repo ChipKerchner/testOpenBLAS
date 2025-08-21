@@ -28,27 +28,27 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common.h"
 
 #if !defined(DOUBLE)
-#define VSETVL(n)               __riscv_vsetvl_e32m1(n)
-#define FLOAT_V_T               vfloat32m1_t
-#define FLOAT_VX2_T             vfloat32m1x2_t
-#define FLOAT_VX4_T             vfloat32m1x4_t
-#define VSET_VX2                __riscv_vset_v_f32m1_f32m1x2
-#define VSET_VX4                __riscv_vset_v_f32m1_f32m1x4
-#define VLEV_FLOAT              __riscv_vle32_v_f32m1
-#define VSEV_FLOAT              __riscv_vse32_v_f32m1
-#define VSSEG2_FLOAT            __riscv_vsseg2e32_v_f32m1x2
-#define VSSEG4_FLOAT            __riscv_vsseg4e32_v_f32m1x4
+#define VSETVL(n)               __riscv_vsetvl_e32m2(n)
+#define FLOAT_V_T               vfloat32m2_t
+#define FLOAT_VX2_T             vfloat32m2x2_t
+#define FLOAT_VX4_T             vfloat32m2x4_t
+#define VSET_VX2                __riscv_vset_v_f32m2_f32m2x2
+#define VSET_VX4                __riscv_vset_v_f32m2_f32m2x4
+#define VLEV_FLOAT              __riscv_vle32_v_f32m2
+#define VSEV_FLOAT              __riscv_vse32_v_f32m2
+#define VSSEG2_FLOAT            __riscv_vsseg2e32_v_f32m2x2
+#define VSSEG4_FLOAT            __riscv_vsseg4e32_v_f32m2x4
 #else
-#define VSETVL(n)               __riscv_vsetvl_e64m1(n)
-#define FLOAT_V_T               vfloat64m1_t
-#define FLOAT_VX2_T             vfloat64m1x2_t
-#define FLOAT_VX4_T             vfloat64m1x4_t
-#define VSET_VX2                __riscv_vset_v_f64m1_f64m1x2
-#define VSET_VX4                __riscv_vset_v_f64m1_f64m1x4
-#define VLEV_FLOAT              __riscv_vle64_v_f64m1
-#define VSEV_FLOAT              __riscv_vse64_v_f64m1
-#define VSSEG2_FLOAT            __riscv_vsseg2e64_v_f64m1x2
-#define VSSEG4_FLOAT            __riscv_vsseg4e64_v_f64m1x4
+#define VSETVL(n)               __riscv_vsetvl_e64m2(n)
+#define FLOAT_V_T               vfloat64m2_t
+#define FLOAT_VX2_T             vfloat64m2x2_t
+#define FLOAT_VX4_T             vfloat64m2x4_t
+#define VSET_VX2                __riscv_vset_v_f64m2_f64m2x2
+#define VSET_VX4                __riscv_vset_v_f64m2_f64m2x4
+#define VLEV_FLOAT              __riscv_vle64_v_f64m2
+#define VSEV_FLOAT              __riscv_vse64_v_f64m2
+#define VSSEG2_FLOAT            __riscv_vsseg2e64_v_f64m2x2
+#define VSSEG4_FLOAT            __riscv_vsseg4e64_v_f64m2x4
 #endif
 
 // Optimizes the implementation in ../generic/gemm_ncopy_4.c
