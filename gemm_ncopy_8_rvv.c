@@ -29,31 +29,49 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if !defined(DOUBLE)
 #define VSETVL(n)               __riscv_vsetvl_e32m1(n)
+#define VSETVL2(n)              __riscv_vsetvl_e32m2(n)
+#define VSETVL4(n)              __riscv_vsetvl_e32m4(n)
+#define VSETVL8(n)              __riscv_vsetvl_e32m8(n)
 #define FLOAT_V_T               vfloat32m1_t
-#define FLOAT_VX2_T             vfloat32m1x2_t
-#define FLOAT_VX4_T             vfloat32m1x4_t
+#define FLOAT2_V_T              vfloat32m2_t
+#define FLOAT4_V_T              vfloat32m4_t
+#define FLOAT8_V_T              vfloat32m8_t
+#define FLOAT_VX2_T             vfloat32m4x2_t
+#define FLOAT_VX4_T             vfloat32m2x4_t
 #define FLOAT_VX8_T             vfloat32m1x8_t
-#define VSET_VX2                __riscv_vset_v_f32m1_f32m1x2
-#define VSET_VX4                __riscv_vset_v_f32m1_f32m1x4
+#define VSET_VX2                __riscv_vset_v_f32m4_f32m4x2
+#define VSET_VX4                __riscv_vset_v_f32m2_f32m2x4
 #define VSET_VX8                __riscv_vset_v_f32m1_f32m1x8
 #define VLEV_FLOAT              __riscv_vle32_v_f32m1
-#define VSEV_FLOAT              __riscv_vse32_v_f32m1
-#define VSSEG2_FLOAT            __riscv_vsseg2e32_v_f32m1x2
-#define VSSEG4_FLOAT            __riscv_vsseg4e32_v_f32m1x4
+#define VLEV_FLOAT2             __riscv_vle32_v_f32m2
+#define VLEV_FLOAT4             __riscv_vle32_v_f32m4
+#define VLEV_FLOAT8             __riscv_vle32_v_f32m8
+#define VSEV_FLOAT8             __riscv_vse32_v_f32m8
+#define VSSEG2_FLOAT            __riscv_vsseg2e32_v_f32m4x2
+#define VSSEG4_FLOAT            __riscv_vsseg4e32_v_f32m2x4
 #define VSSEG8_FLOAT            __riscv_vsseg8e32_v_f32m1x8
 #else
 #define VSETVL(n)               __riscv_vsetvl_e64m1(n)
+#define VSETVL2(n)              __riscv_vsetvl_e64m2(n)
+#define VSETVL4(n)              __riscv_vsetvl_e64m4(n)
+#define VSETVL8(n)              __riscv_vsetvl_e64m8(n)
 #define FLOAT_V_T               vfloat64m1_t
-#define FLOAT_VX2_T             vfloat64m1x2_t
-#define FLOAT_VX4_T             vfloat64m1x4_t
+#define FLOAT2_V_T              vfloat64m2_t
+#define FLOAT4_V_T              vfloat64m4_t
+#define FLOAT8_V_T              vfloat64m8_t
+#define FLOAT_VX2_T             vfloat64m4x2_t
+#define FLOAT_VX4_T             vfloat64m2x4_t
 #define FLOAT_VX8_T             vfloat64m1x8_t
-#define VSET_VX2                __riscv_vset_v_f64m1_f64m1x2
-#define VSET_VX4                __riscv_vset_v_f64m1_f64m1x4
+#define VSET_VX2                __riscv_vset_v_f64m4_f64m4x2
+#define VSET_VX4                __riscv_vset_v_f64m2_f64m2x4
 #define VSET_VX8                __riscv_vset_v_f64m1_f64m1x8
 #define VLEV_FLOAT              __riscv_vle64_v_f64m1
-#define VSEV_FLOAT              __riscv_vse64_v_f64m1
-#define VSSEG2_FLOAT            __riscv_vsseg2e64_v_f64m1x2
-#define VSSEG4_FLOAT            __riscv_vsseg4e64_v_f64m1x4
+#define VLEV_FLOAT2             __riscv_vle64_v_f64m2
+#define VLEV_FLOAT4             __riscv_vle64_v_f64m4
+#define VLEV_FLOAT8             __riscv_vle64_v_f64m8
+#define VSEV_FLOAT8             __riscv_vse64_v_f64m8
+#define VSSEG2_FLOAT            __riscv_vsseg2e64_v_f64m4x2
+#define VSSEG4_FLOAT            __riscv_vsseg4e64_v_f64m2x4
 #define VSSEG8_FLOAT            __riscv_vsseg8e64_v_f64m1x8
 #endif
 
@@ -69,6 +87,10 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT *a, BLASLONG lda, FLOAT *b)
     FLOAT *b_offset;
 
     FLOAT_V_T v1, v2, v3, v4, v5, v6, v7, v8;
+    FLOAT2_V_T v12, v22, v32, v42;
+    FLOAT4_V_T v14, v24;
+    FLOAT8_V_T v18;
+
     FLOAT_VX2_T vx2;
     FLOAT_VX4_T vx4;
     FLOAT_VX8_T vx8;
@@ -134,17 +156,17 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT *a, BLASLONG lda, FLOAT *b)
         a_offset += 4 * lda;
 
         for(i = m; i > 0; i -= vl) {
-            vl = VSETVL(i);
+            vl = VSETVL2(i);
 
-            v1 = VLEV_FLOAT(a_offset1, vl);
-            v2 = VLEV_FLOAT(a_offset2, vl);
-            v3 = VLEV_FLOAT(a_offset3, vl);
-            v4 = VLEV_FLOAT(a_offset4, vl);
+            v12 = VLEV_FLOAT2(a_offset1, vl);
+            v22 = VLEV_FLOAT2(a_offset2, vl);
+            v32 = VLEV_FLOAT2(a_offset3, vl);
+            v42 = VLEV_FLOAT2(a_offset4, vl);
 
-            vx4 = VSET_VX4(vx4, 0, v1);
-            vx4 = VSET_VX4(vx4, 1, v2);
-            vx4 = VSET_VX4(vx4, 2, v3);
-            vx4 = VSET_VX4(vx4, 3, v4);
+            vx4 = VSET_VX4(vx4, 0, v12);
+            vx4 = VSET_VX4(vx4, 1, v22);
+            vx4 = VSET_VX4(vx4, 2, v32);
+            vx4 = VSET_VX4(vx4, 3, v42);
 
             VSSEG4_FLOAT(b_offset, vx4, vl);
 
@@ -162,13 +184,13 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT *a, BLASLONG lda, FLOAT *b)
         a_offset += 2 * lda;
 
         for(i = m; i > 0; i -= vl) {
-            vl = VSETVL(i);
+            vl = VSETVL4(i);
 
-            v1 = VLEV_FLOAT(a_offset1, vl);
-            v2 = VLEV_FLOAT(a_offset2, vl);
+            v14 = VLEV_FLOAT4(a_offset1, vl);
+            v24 = VLEV_FLOAT4(a_offset2, vl);
 
-            vx2 = VSET_VX2(vx2, 0, v1);
-            vx2 = VSET_VX2(vx2, 1, v2);
+            vx2 = VSET_VX2(vx2, 0, v14);
+            vx2 = VSET_VX2(vx2, 1, v24);
 
             VSSEG2_FLOAT(b_offset, vx2, vl);
 
@@ -182,11 +204,11 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT *a, BLASLONG lda, FLOAT *b)
         a_offset1  = a_offset;
 
         for(i = m; i > 0; i -= vl) {
-            vl = VSETVL(i);
+            vl = VSETVL8(i);
 
-            v1 = VLEV_FLOAT(a_offset1, vl);
+            v18 = VLEV_FLOAT8(a_offset1, vl);
 
-            VSEV_FLOAT(b_offset, v1, vl);
+            VSEV_FLOAT8(b_offset, v18, vl);
 
             a_offset1 += vl;
             b_offset += vl;

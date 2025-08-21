@@ -28,6 +28,20 @@
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
 #undef VSEV_FLOAT
+#undef FLOAT_VX2_T
+#undef FLOAT_VX4_T
+#undef FLOAT2_V_T
+#undef FLOAT4_V_T
+#undef VSET_VX2
+#undef VSET_VX4
+#undef VLEV_FLOAT2
+#undef VLEV_FLOAT4
+#undef VSSEG2_FLOAT
+#undef VSSEG4_FLOAT
+#undef VSETVL
+#undef VSETVL2
+#undef VSETVL4
+#undef VSETVL8
 #else
 #include "gemm_ncopy_16.c"
 #endif
@@ -39,11 +53,18 @@
 #undef VSEV_FLOAT
 #undef FLOAT_VX2_T
 #undef FLOAT_VX4_T
+#undef FLOAT2_V_T
+#undef FLOAT4_V_T
 #undef VSET_VX2
 #undef VSET_VX4
+#undef VLEV_FLOAT2
+#undef VLEV_FLOAT4
 #undef VSSEG2_FLOAT
 #undef VSSEG4_FLOAT
 #undef VSETVL
+#undef VSETVL2
+#undef VSETVL4
+#undef VSETVL8
 #else
 #include "gemm_ncopy_8.c"
 #endif
