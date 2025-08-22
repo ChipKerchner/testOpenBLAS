@@ -127,112 +127,109 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT *a, BLASLONG lda, FLOAT *b)
     a_offset = a;
     b_offset = b;
 
-    j = (n >> 4);
-    if (j) {
+    for (j = (n >> 4); j > 0; j--) {
         vl = VSETVL(8);
 
-        do {
-            a_offset1  = a_offset;
-            a_offset2  = a_offset1  + lda * 8;
-            a_offset += 16 * lda;
+        a_offset1  = a_offset;
+        a_offset2  = a_offset1  + lda * 8;
+        a_offset += 16 * lda;
 
-            for (i = m >> 3; i > 0; i--) {
-                vx8 = VLSSEG8_FLOAT(a_offset1, lda * sizeof(FLOAT), vl);
-                vx81 = VLSSEG8_FLOAT(a_offset2, lda * sizeof(FLOAT), vl);
+        for (i = m >> 3; i > 0; i--) {
+            vx8 = VLSSEG8_FLOAT(a_offset1, lda * sizeof(FLOAT), vl);
+            vx81 = VLSSEG8_FLOAT(a_offset2, lda * sizeof(FLOAT), vl);
 
-                v1 = VGET_VX8(vx8, 0);
-                v2 = VGET_VX8(vx8, 1);
-                v3 = VGET_VX8(vx8, 2);
-                v4 = VGET_VX8(vx8, 3);
-                v5 = VGET_VX8(vx8, 4);
-                v6 = VGET_VX8(vx8, 5);
-                v7 = VGET_VX8(vx8, 6);
-                v8 = VGET_VX8(vx8, 7);
-                v9 = VGET_VX8(vx81, 0);
-                v10 = VGET_VX8(vx81, 1);
-                v11 = VGET_VX8(vx81, 2);
-                v12 = VGET_VX8(vx81, 3);
-                v13 = VGET_VX8(vx81, 4);
-                v14 = VGET_VX8(vx81, 5);
-                v15 = VGET_VX8(vx81, 6);
-                v16 = VGET_VX8(vx81, 7);
+            v1 = VGET_VX8(vx8, 0);
+            v2 = VGET_VX8(vx8, 1);
+            v3 = VGET_VX8(vx8, 2);
+            v4 = VGET_VX8(vx8, 3);
+            v5 = VGET_VX8(vx8, 4);
+            v6 = VGET_VX8(vx8, 5);
+            v7 = VGET_VX8(vx8, 6);
+            v8 = VGET_VX8(vx8, 7);
+            v9 = VGET_VX8(vx81, 0);
+            v10 = VGET_VX8(vx81, 1);
+            v11 = VGET_VX8(vx81, 2);
+            v12 = VGET_VX8(vx81, 3);
+            v13 = VGET_VX8(vx81, 4);
+            v14 = VGET_VX8(vx81, 5);
+            v15 = VGET_VX8(vx81, 6);
+            v16 = VGET_VX8(vx81, 7);
 
-                VSEV_FLOAT(b_offset, v1, vl);
-                VSEV_FLOAT(b_offset + 8, v9, vl);
-                VSEV_FLOAT(b_offset + 16, v2, vl);
-                VSEV_FLOAT(b_offset + 24, v10, vl);
-                VSEV_FLOAT(b_offset + 32, v3, vl);
-                VSEV_FLOAT(b_offset + 40, v11, vl);
-                VSEV_FLOAT(b_offset + 48, v4, vl);
-                VSEV_FLOAT(b_offset + 56, v12, vl);
-                VSEV_FLOAT(b_offset + 64, v5, vl);
-                VSEV_FLOAT(b_offset + 72, v13, vl);
-                VSEV_FLOAT(b_offset + 80, v6, vl);
-                VSEV_FLOAT(b_offset + 88, v14, vl);
-                VSEV_FLOAT(b_offset + 96, v7, vl);
-                VSEV_FLOAT(b_offset + 104, v15, vl);
-                VSEV_FLOAT(b_offset + 112, v8, vl);
-                VSEV_FLOAT(b_offset + 120, v16, vl);
+            VSEV_FLOAT(b_offset, v1, vl);
+            VSEV_FLOAT(b_offset + 8, v9, vl);
+            VSEV_FLOAT(b_offset + 16, v2, vl);
+            VSEV_FLOAT(b_offset + 24, v10, vl);
+            VSEV_FLOAT(b_offset + 32, v3, vl);
+            VSEV_FLOAT(b_offset + 40, v11, vl);
+            VSEV_FLOAT(b_offset + 48, v4, vl);
+            VSEV_FLOAT(b_offset + 56, v12, vl);
+            VSEV_FLOAT(b_offset + 64, v5, vl);
+            VSEV_FLOAT(b_offset + 72, v13, vl);
+            VSEV_FLOAT(b_offset + 80, v6, vl);
+            VSEV_FLOAT(b_offset + 88, v14, vl);
+            VSEV_FLOAT(b_offset + 96, v7, vl);
+            VSEV_FLOAT(b_offset + 104, v15, vl);
+            VSEV_FLOAT(b_offset + 112, v8, vl);
+            VSEV_FLOAT(b_offset + 120, v16, vl);
 
-                a_offset1 += 8;
-                a_offset2 += 8;
-                b_offset += 128;
-            }
+            a_offset1 += 8;
+            a_offset2 += 8;
+            b_offset += 128;
+        }
 
-            if (m & 4) {
-                vx4 = VLSSEG4_FLOAT(a_offset1, lda * sizeof(FLOAT), vl);
-                vx41 = VLSSEG4_FLOAT(a_offset2, lda * sizeof(FLOAT), vl);
+        if (m & 4) {
+            vx4 = VLSSEG4_FLOAT(a_offset1, lda * sizeof(FLOAT), vl);
+            vx41 = VLSSEG4_FLOAT(a_offset2, lda * sizeof(FLOAT), vl);
 
-                v1 = VGET_VX4(vx4, 0);
-                v2 = VGET_VX4(vx4, 1);
-                v3 = VGET_VX4(vx4, 2);
-                v4 = VGET_VX4(vx4, 3);
-                v5 = VGET_VX4(vx41, 0);
-                v6 = VGET_VX4(vx41, 1);
-                v7 = VGET_VX4(vx41, 2);
-                v8 = VGET_VX4(vx41, 3);
+            v1 = VGET_VX4(vx4, 0);
+            v2 = VGET_VX4(vx4, 1);
+            v3 = VGET_VX4(vx4, 2);
+            v4 = VGET_VX4(vx4, 3);
+            v5 = VGET_VX4(vx41, 0);
+            v6 = VGET_VX4(vx41, 1);
+            v7 = VGET_VX4(vx41, 2);
+            v8 = VGET_VX4(vx41, 3);
 
-                VSEV_FLOAT(b_offset, v1, vl);
-                VSEV_FLOAT(b_offset + 8, v5, vl);
-                VSEV_FLOAT(b_offset + 16, v2, vl);
-                VSEV_FLOAT(b_offset + 24, v6, vl);
-                VSEV_FLOAT(b_offset + 32, v3, vl);
-                VSEV_FLOAT(b_offset + 40, v7, vl);
-                VSEV_FLOAT(b_offset + 48, v4, vl);
-                VSEV_FLOAT(b_offset + 56, v8, vl);
+            VSEV_FLOAT(b_offset, v1, vl);
+            VSEV_FLOAT(b_offset + 8, v5, vl);
+            VSEV_FLOAT(b_offset + 16, v2, vl);
+            VSEV_FLOAT(b_offset + 24, v6, vl);
+            VSEV_FLOAT(b_offset + 32, v3, vl);
+            VSEV_FLOAT(b_offset + 40, v7, vl);
+            VSEV_FLOAT(b_offset + 48, v4, vl);
+            VSEV_FLOAT(b_offset + 56, v8, vl);
 
-                a_offset1 += 4;
-                a_offset2 += 4;
-                b_offset += 64;
-            }
+            a_offset1 += 4;
+            a_offset2 += 4;
+            b_offset += 64;
+        }
 
-            if (m & 2) {
-                vx2 = VLSSEG2_FLOAT(a_offset1, lda * sizeof(FLOAT), vl);
-                vx21 = VLSSEG2_FLOAT(a_offset2, lda * sizeof(FLOAT), vl);
+        if (m & 2) {
+            vx2 = VLSSEG2_FLOAT(a_offset1, lda * sizeof(FLOAT), vl);
+            vx21 = VLSSEG2_FLOAT(a_offset2, lda * sizeof(FLOAT), vl);
 
-                v1 = VGET_VX2(vx2, 0);
-                v2 = VGET_VX2(vx2, 1);
-                v3 = VGET_VX2(vx21, 0);
-                v4 = VGET_VX2(vx21, 1);
+            v1 = VGET_VX2(vx2, 0);
+            v2 = VGET_VX2(vx2, 1);
+            v3 = VGET_VX2(vx21, 0);
+            v4 = VGET_VX2(vx21, 1);
 
-                VSEV_FLOAT(b_offset, v1, vl);
-                VSEV_FLOAT(b_offset + 8, v3, vl);
-                VSEV_FLOAT(b_offset + 16, v2, vl);
-                VSEV_FLOAT(b_offset + 24, v4, vl);
+            VSEV_FLOAT(b_offset, v1, vl);
+            VSEV_FLOAT(b_offset + 8, v3, vl);
+            VSEV_FLOAT(b_offset + 16, v2, vl);
+            VSEV_FLOAT(b_offset + 24, v4, vl);
 
-                a_offset1 += 2;
-                a_offset2 += 2;
-                b_offset += 32;
-            }
+            a_offset1 += 2;
+            a_offset2 += 2;
+            b_offset += 32;
+        }
 
-            if (m & 1) {
-                v21 = VLSEG2_FLOAT(a_offset1, lda * sizeof(FLOAT), vl * 2);
+        if (m & 1) {
+            v21 = VLSEG2_FLOAT(a_offset1, lda * sizeof(FLOAT), vl * 2);
 
-                VSEV_FLOAT2(b_offset, v21, vl * 2);
+            VSEV_FLOAT2(b_offset, v21, vl * 2);
 
-                b_offset += 16;
-            }
-        } while (--j);
+            b_offset += 16;
+        }
     }
 
     if (n & 8) {
