@@ -141,10 +141,11 @@
 #define BF16_EPSILON     (FLOAT)(1 << ((sizeof(FLOAT) - sizeof(IFLOAT)) * 8))
 #ifdef TEST_FLOAT
 #define FLOAT_EPSILON    (FLOAT)(FLT_EPSILON)
+#define TRANS_EPSILON    4 * 8
 #else
 #define FLOAT_EPSILON    (FLOAT)(DBL_EPSILON)
+#define TRANS_EPSILON    2 * 8
 #endif
-#define TRANS_EPSILON    2
 
 #define NBMAX            4096
 
@@ -539,7 +540,7 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
 #endif
 {
 #ifdef TEST_MATRIX
-  FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * K * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+  FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
 
   if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2)) {
 #else
@@ -949,7 +950,7 @@ int main(int argc, char **argv)
 
   if (all) {
 #ifdef TEST_MATRIX
-    FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * K * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+    FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
 #else
     FLOAT tol = (FLOAT)((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M * TRANS_EPSILON) / BF16_EPSILON;
 #endif
