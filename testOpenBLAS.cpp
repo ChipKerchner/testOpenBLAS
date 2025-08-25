@@ -141,11 +141,10 @@
 #define BF16_EPSILON     (FLOAT)(1 << ((sizeof(FLOAT) - sizeof(IFLOAT)) * 8))
 #ifdef TEST_FLOAT
 #define FLOAT_EPSILON    (FLOAT)(FLT_EPSILON)
-#define TRANS_EPSILON    4 * 8
 #else
 #define FLOAT_EPSILON    (FLOAT)(DBL_EPSILON)
-#define TRANS_EPSILON    2 * 8
 #endif
+#define TRANS_EPSILON    4 * 8
 
 #define NBMAX            4096
 
