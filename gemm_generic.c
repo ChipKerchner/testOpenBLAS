@@ -35,9 +35,10 @@ static void GEMV_N_beta(BLASLONG n, FLOAT *output_vector, FLOAT *input_vector, F
   }
 }
 
-int BF16GEMV_T_generic(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output, FLOAT alpha, FLOAT beta, FLOAT *input)
+#ifdef TEST_BFLOAT
+int BF16GEMV_T_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *input)
 {
-  BF16GEMV_N_beta(N, output, input, beta);
+  GEMV_N_beta(N, output, input, 1.0);
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line = j * M;
     FLOAT t = 0;
@@ -48,10 +49,11 @@ int BF16GEMV_T_generic(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *inp
   }
   return 0;
 }
+#endif
 
-int FP3264GEMV_T_generic(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output, FLOAT alpha, FLOAT beta, FLOAT *input)
+int FP3264GEMV_T_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *input)
 {
-  GEMV_N_beta(M, N, output, input, beta);
+  GEMV_N_beta(M, output, input, 1.0);
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line = j * M;
     FLOAT t = 0;
@@ -63,11 +65,12 @@ int FP3264GEMV_T_generic(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *i
   return 0;
 }
 
-int BF16GEMV_T_RVV(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output, FLOAT alpha, FLOAT beta, FLOAT *input)
+#ifdef TEST_BFLOAT
+int BF16GEMV_T_RVV(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *input)
 {
   IFLOAT *ap, *x;
   FLOAT *y;
-  BF16GEMV_N_beta(N, output, input, beta);
+  BF16GEMV_N_beta(N, output, input, 1.0);
   BLASLONG lda = M;
   BLASLONG j = 0;
 #ifdef USE_BFGEMV_8_T_RVV
@@ -95,9 +98,9 @@ int BF16GEMV_T_RVV(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *input_v
   return 0;
 }
 
-int BF16GEMV_N_generic(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output, FLOAT alpha, FLOAT beta, FLOAT *input)
+int BF16GEMV_N_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *input)
 {
-  GEMV_N_beta(M, output, input, beta);
+  GEMV_N_beta(M, output, input, 1.0);
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line = j * M;
     FLOAT inp = bfloat16tof32(input_vector[j]) * alpha;
@@ -107,10 +110,11 @@ int BF16GEMV_N_generic(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *inp
   }
   return 0;
 }
+#endif
 
-int FP3264GEMV_N_generic(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output, FLOAT alpha, FLOAT beta, FLOAT *input)
+int FP3264GEMV_N_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *input)
 {
-  GEMV_N_beta(M, output, input, beta);
+  GEMV_N_beta(M, output, input, 1.0);
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line = j * M;
     FLOAT inp = bfloat16tof32(input_vector[j]) * alpha;
@@ -121,11 +125,12 @@ int FP3264GEMV_N_generic(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *i
   return 0;
 }
 
-int BF16GEMV_N_RVV(BLASLONG M, BLASLONG N, IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output, FLOAT alpha, FLOAT beta, FLOAT *input)
+#ifdef TEST_BFLOAT
+int BF16GEMV_N_RVV(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *input)
 {
   IFLOAT *ap[4], *xo;
   FLOAT *y;
-  BF16GEMV_N_beta(M, output, input, beta);
+  BF16GEMV_N_beta(M, output, input, 1.0);
   BLASLONG lda = M;
   BLASLONG j = 0;
 #ifdef USE_BFGEMV_8_N_RVV
@@ -169,6 +174,7 @@ void BF16GEMM_beta(BLASLONG M, BLASLONG N, FLOAT *output_vector, FLOAT *input_ve
     }
   }
 }
+#endif
 
 int FP3264GEMM_NN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
@@ -234,6 +240,7 @@ int FP3264GEMM_TT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT
   return 0;
 }
 
+#ifdef TEST_BFLOAT
 int BF16GEMM_N_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
   for (BLASLONG j = 0; j < N; j++) {
@@ -265,3 +272,5 @@ int BF16GEMM_T_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A
   }
   return 0;
 }
+#endif
+

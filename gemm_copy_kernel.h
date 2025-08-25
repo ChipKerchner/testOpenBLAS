@@ -169,6 +169,10 @@
 #ifndef TEST_BFLOAT
 #define CNAME  FP3264GEMV_N_RVV
 #include "gemv_n_vector.c"
+#undef VSETVL
+#undef FLOAT_V_T
+#undef VLEV_FLOAT
+#undef VLSEV_FLOAT
 #undef CNAME
 
 #define CNAME  FP3264GEMV_T_RVV

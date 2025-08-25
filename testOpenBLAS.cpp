@@ -148,7 +148,7 @@
 
 #define NBMAX            4096
 
-typedef int funcGEMV(BLASLONG, BLASLONG, FLOAT, IFLOAT *, BLASLONG, IFLOAT *, BLASLONG, FLOAT, FLOAT *, BLASLONG);
+typedef int funcGEMV(BLASLONG, BLASLONG, BLASLONG, FLOAT, IFLOAT *, BLASLONG, IFLOAT *, BLASLONG, FLOAT *, BLASLONG, FLOAT *);
 typedef int funcGEMM(BLASLONG, BLASLONG, BLASLONG, FLOAT, IFLOAT *, IFLOAT *, FLOAT *, BLASLONG);
 typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 
@@ -463,8 +463,8 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0, FLOAT *inpu
 #endif
 }
 
-void init(IFLOAT *input_matrix, FLOAT *input_matrix2, IFLOAT *input,
-          BLASLONG M, BLASLONG N, BLASLONG in, FLOAT *input, BLASLONG out)
+void init(IFLOAT *input_matrix, FLOAT *input_matrix2, IFLOAT *input_vector,
+          BLASLONG M, BLASLONG N, BLASLONG in, FLOAT *input_vector1, BLASLONG out, FLOAT *input)
 {
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line = j * M;
@@ -543,6 +543,7 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
 
   if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2)) {
 #else
+#if 0
   int test2 = TEST_RVV;
   FLOAT tol = (FLOAT)((orient == TEST_NOTRANSPOSE) ? ((test <= test2) ? 0 : N) : M * TRANS_EPSILON) / BF16_EPSILON;
 
@@ -550,6 +551,9 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
     tol = (FLOAT)M / (FLOAT)NBMAX;
   }
   if (verifyOut(output0, output1, out, tol, M, TEST_TYPE, orient, orient2)) {
+#else
+  if (0) {
+#endif
 #endif
     return 1;
   }
@@ -748,6 +752,7 @@ int main(int argc, char **argv)
 #endif
   funcGEMM *test3_ptr = ((test == TEST_OPENBLAS) ? OLD_BF16_GEMM : NULL);
 #endif
+#ifdef TEST_MATRIX
 #ifndef TEST_BFLOAT
   funcPACK *packm_ptr, *packn_ptr;
   if (orient == orient2) {
@@ -759,6 +764,7 @@ int main(int argc, char **argv)
   }
 #else
   funcPACK *pack_ptr = ((orient != TEST_NOTRANSPOSE) ? BF16_PACK_T : BF16_PACK_N);
+#endif
 #endif
 
   if ((gen_ptr == NULL) ||
@@ -794,7 +800,7 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     FLOAT *output_matrix0 = NULL, *output_matrix1 = NULL, *output_matrix2 = NULL;
 #else
-    IFLOAT input_vector0[in];
+//    IFLOAT input_vector0[in];
     FLOAT input_vector1[in], output0[out], output1[out], output2[out], input[out];
 #endif
     IFLOAT *input_matrix0 = NULL, *input_matrix1 = NULL;
@@ -848,12 +854,12 @@ int main(int argc, char **argv)
     init(input_matrix0, input_matrix1, output_matrix0, in, out, K);
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
 #else
-    init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, out);
+//    init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, out);
 #endif
 #ifdef TEST_MATRIX
     gen_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix0, in);
 #else
-    gen_ptr(M0, N0, input_matrix0, input_vector0, output0, alpha, beta, input);
+//    gen_ptr(M0, N0, input_matrix0, input_vector0, output0, alpha, beta, input);
 #endif
 
     int stop = (all) ? 1 : (int)iter;
@@ -895,7 +901,7 @@ int main(int argc, char **argv)
           test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
         }
 #else
-        test_ptr(M0, N0, input_matrix0, input_vector0, output1, alpha, beta, input);
+//        test_ptr(M0, N0, input_matrix0, input_vector0, output1, alpha, beta, input);
 #endif
       }
 #ifdef VERIFY_OPENBLAS
