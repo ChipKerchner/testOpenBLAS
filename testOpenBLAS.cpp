@@ -11,7 +11,7 @@
 #define RVV_128       // Test 128-bit RVV
 #endif
 
-//#define TEST_MATRIX   // Test GEMM
+#define TEST_MATRIX   // Test GEMM
 #ifndef TEST_MATRIX
 #define TEST_VECTOR   // Test GEMV
 #endif
@@ -26,7 +26,7 @@
 #endif
 
 #ifdef TEST_VECTOR
-#define VERIFY_MATRIX        // Verfiy GEMV versus GEMM
+//#define VERIFY_MATRIX        // Verfiy GEMV versus GEMM
 #endif
 
 #ifdef TEST_MATRIX
@@ -51,12 +51,14 @@
 
 #ifdef RVV_256
 #define RVV_VLENB        32
+#define RISCV64_ZVL256B
 
 #if __riscv_v_min_vlen != 256
 #warning "Better to compile with ZVL256B"
 #endif
 #else
 #define RVV_VLENB        16
+#define RISCV64_ZVL128B
 
 #if __riscv_v_min_vlen != 128
 #warning "Better to compile with ZVL128B"
@@ -292,9 +294,9 @@ func *func_ptr(int test, int orient, int orient2)
 #endif
 #else
 #ifndef TEST_BFLOAT
-          return FP3264GEMV_N_RVV;
+          return FP3264GEMV_T_RVV;
 #else
-          return BF16GEMV_N_RVV;
+          return BF16GEMV_T_RVV;
 #endif
 #endif
           break;
@@ -480,7 +482,7 @@ void init(IFLOAT *input_matrix, FLOAT *input_matrix2, IFLOAT *input_vector, FLOA
   }
 }
 
-int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG size, const char *str)
+int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG size, const char *str, int orient)
 {
   FLOAT maxOut = (FLOAT)0;
   BLASLONG i = 0;
@@ -492,7 +494,7 @@ int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG 
     }
   }
   if (maxOut > tol) {
-    fprintf(stderr, "Bad %s result %13.4f %13.4f %4ld %4ld (%8.6f %8.6f)\n\n", str, output0[i], output1[i], i, size, maxOut, tol);
+    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld (%8.6f %8.6f %4ld %d)\n\n", TEST_STR, str, output0[i], output1[i], i, maxOut, tol, size, orient);
     return 1;
   }
   return 0;
@@ -538,18 +540,12 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
            FLOAT *input)
 #endif
 {
-#ifdef TEST_MATRIX
   FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
 
+#ifdef TEST_MATRIX
   if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2)) {
 #else
-  int test2 = TEST_RVV;
-  FLOAT tol = (FLOAT)((orient == TEST_NOTRANSPOSE) ? ((test <= test2) ? 0 : N) : M * TRANS_EPSILON) / BF16_EPSILON;
-
-  if ((orient == TEST_TRANSPOSE) && (M > NBMAX)) {
-    tol = (FLOAT)M / (FLOAT)NBMAX;
-  }
-  if (verifyOut(output0, output1, out, tol, M, TEST_TYPE)) {
+  if (verifyOut(output0, output1, out, tol, M, TEST_TYPE, orient)) {
 #endif
     return 1;
   }
@@ -855,7 +851,7 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     gen_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix0, in);
 #else
-    gen_ptr(in, out, K, alpha, input_matrix0, in, input_vector0, inc, output1, inc, input);
+    gen_ptr(in, out, K, alpha, input_matrix0, in, input_vector0, inc, output0, inc, input);
 #endif
 
     int stop = (all) ? 1 : (int)iter;
@@ -897,6 +893,7 @@ int main(int argc, char **argv)
           test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
         }
 #else
+        memcpy(output1, input, out * sizeof(FLOAT));
         test_ptr(in, out, K, alpha, input_matrix0, in, input_vector0, inc, output1, inc, input);
 #endif
       }
@@ -950,11 +947,7 @@ int main(int argc, char **argv)
   }
 
   if (all) {
-#ifdef TEST_MATRIX
     FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
-#else
-    FLOAT tol = (FLOAT)((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M * TRANS_EPSILON) / BF16_EPSILON;
-#endif
     printf("All %s tests successful from %4d to %4ld (%4ld %8.6f)\n\n", (all == 2) ? "rectangular" : "square", 1, M, N, tol);
   }
 

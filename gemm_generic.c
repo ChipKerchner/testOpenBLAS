@@ -117,7 +117,7 @@ int FP3264GEMV_N_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, I
   GEMV_N_beta(M, output, buffer, 1.0);
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line = j * M;
-    FLOAT inp = bfloat16tof32(input_vector[j]) * alpha;
+    FLOAT inp = input_vector[j] * alpha;
     for (BLASLONG i = 0; i < M; i++) {
       output[i] += input_matrix[line + i] * inp;
     }
