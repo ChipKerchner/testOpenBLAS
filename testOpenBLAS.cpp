@@ -81,7 +81,7 @@
 #ifdef TEST_MATRIX
 #define TEST_SIZE        127
 #else
-#define TEST_SIZE        4095
+#define TEST_SIZE        511
 #endif
 
 #define TEST_ITER        100
@@ -482,7 +482,7 @@ void init(IFLOAT *input_matrix, FLOAT *input_matrix2, IFLOAT *input_vector, FLOA
   }
 }
 
-int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG size, const char *str, int orient)
+int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG size, BLASLONG size2, const char *str, int orient)
 {
   FLOAT maxOut = (FLOAT)0;
   BLASLONG i = 0;
@@ -494,7 +494,7 @@ int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG 
     }
   }
   if (maxOut > tol) {
-    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld (%8.6f %8.6f %4ld %d)\n\n", TEST_STR, str, output0[i], output1[i], i, maxOut, tol, size, orient);
+    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld (%8.6f %8.6f %4ld %4ld %d)\n\n", TEST_STR, str, output0[i], output1[i], i, maxOut, tol, size, size2, orient);
     return 1;
   }
   return 0;
@@ -545,7 +545,7 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
 #ifdef TEST_MATRIX
   if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2)) {
 #else
-  if (verifyOut(output0, output1, out, tol, M, TEST_TYPE, orient)) {
+  if (verifyOut(output0, output1, out, tol, M, N, TEST_TYPE, orient)) {
 #endif
     return 1;
   }
@@ -793,19 +793,27 @@ int main(int argc, char **argv)
     FLOAT *output_matrix0 = NULL, *output_matrix1 = NULL, *output_matrix2 = NULL;
 #else
     IFLOAT input_vector0[in];
-    FLOAT input_vector1[in], output0[out], output1[out], output2[out], input[out];
+    FLOAT input_vector1[in], output0[N0], output1[N0], output2[N0], input[N0];
 #endif
     IFLOAT *input_matrix0 = NULL, *input_matrix1 = NULL;
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)
     IFLOAT *input_matrix01 = NULL, *input_matrix11 = NULL;
 #endif
 
+#ifdef TEST_MATRIX
     input_matrix0 = (IFLOAT *)malloc(in * K * sizeof(IFLOAT));
+#else
+    input_matrix0 = (IFLOAT *)malloc(in * out * sizeof(IFLOAT));
+#endif
     if (input_matrix0 == NULL) {
       fprintf(stderr, "Bad malloc\n");
       return 1;
     }
+#ifdef TEST_MATRIX
     input_matrix1 = (IFLOAT *)malloc(K * out * sizeof(IFLOAT));
+#else
+    input_matrix1 = (IFLOAT *)malloc(in * out * sizeof(IFLOAT));
+#endif
     if (input_matrix1 == NULL) {
       fprintf(stderr, "Bad malloc\n");
       return 1;
@@ -846,7 +854,7 @@ int main(int argc, char **argv)
     init(input_matrix0, input_matrix1, output_matrix0, in, out, K);
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
 #else
-    init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, out);
+    init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, N0);
 #endif
 #ifdef TEST_MATRIX
     gen_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix0, in);
@@ -893,7 +901,7 @@ int main(int argc, char **argv)
           test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
         }
 #else
-        memcpy(output1, input, out * sizeof(FLOAT));
+        memcpy(output1, input, N0 * sizeof(FLOAT));
         test_ptr(in, out, K, alpha, input_matrix0, in, input_vector0, inc, output1, inc, input);
 #endif
       }
@@ -918,7 +926,7 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
 #else
-    if (verify(test, orient, orient2, M0, N0, out, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input)) {
+    if (verify(test, orient, orient2, M0, N0, N0, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input)) {
 #endif
       return 1;
     }

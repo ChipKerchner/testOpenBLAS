@@ -30,7 +30,7 @@ static void GEMV_N_beta(BLASLONG n, FLOAT *output_vector, FLOAT *input_vector, F
     }
   } else {
     for (BLASLONG j = 0; j < n; j++) {
-      output_vector[j] *= beta;
+      output_vector[j] = input_vector[j] * beta;
     }
   }
 }
@@ -53,7 +53,7 @@ int BF16GEMV_T_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFL
 
 int FP3264GEMV_T_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *buffer)
 {
-  GEMV_N_beta(M, output, buffer, 1.0);
+  GEMV_N_beta(N, output, buffer, 1.0);
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line = j * M;
     FLOAT t = 0;
