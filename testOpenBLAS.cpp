@@ -559,21 +559,6 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
 }
 
 #ifdef VERIFY_OPENBLAS
-void BF16GEMV_N_beta(BLASLONG n, FLOAT *output_vector, FLOAT *input_vector, FLOAT beta)
-{
-  if (beta == (FLOAT)0) {
-    memset(output_vector, 0, sizeof(FLOAT) * n);
-  } else if (beta == (FLOAT)1) {
-    if (output_vector != input_vector) {
-      memcpy(output_vector, input_vector, sizeof(FLOAT) * n);
-    }
-  } else {
-    for (BLASLONG i = 0; i < n; i++) {
-       output_vector[i] = input_vector[i] * beta;
-    }
-  }
-}
-
 void verifyGEMV(funcGEMV *test_ptr, int orient, BLASLONG M, BLASLONG N, BLASLONG out,
            IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output2, FLOAT alpha, FLOAT beta,
            FLOAT *input, BLASLONG inc)
@@ -603,7 +588,7 @@ void verifyGEMM(funcGEMM *test_ptr, funcPACK *pack_ptr, int orient, BLASLONG M, 
         IFLOAT *input_matrix, IFLOAT *input_vector, FLOAT *output2, IFLOAT *input_matrix1, FLOAT alpha,
         FLOAT *input, FLOAT beta)
 {
-  BF16GEMV_N_beta(out, output2, input, beta);
+  GEMV_N_beta(out, output2, input, beta);
 
   if (orient != TEST_NOTRANSPOSE) {
     pack_ptr(M, N, input_matrix, M, input_matrix1);
@@ -854,7 +839,9 @@ int main(int argc, char **argv)
     init(input_matrix0, input_matrix1, output_matrix0, in, out, K);
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
 #else
+#ifndef TEST_BFLOAT  // Temp
     init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, N0);
+#endif
 #endif
 #ifdef TEST_MATRIX
     gen_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix0, in);
@@ -926,7 +913,11 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
 #else
+#ifndef TEST_BFLOAT  // Temp
     if (verify(test, orient, orient2, M0, N0, N0, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input)) {
+#else
+    if (1) {
+#endif
 #endif
       return 1;
     }

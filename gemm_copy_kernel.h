@@ -179,11 +179,12 @@
 #include "gemv_t_vector.c"
 #else
 #define CNAME  BF16GEMV_N_RVV
-#include "sbgemv_n.c"
+//#include "sbgemv_n.c"
+#include "common.h"   // Temp
 #undef CNAME
 
 #define CNAME  BF16GEMV_T_RVV
-#include "sbgemv_t.c"
+//#include "sbgemv_t.c"
 #endif
 #endif
 #undef CNAME
