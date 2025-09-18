@@ -17,9 +17,17 @@
 #else
 #define CNAME  BF16GEMM_N_RVV
 #ifdef RVV_256
+#ifndef TEST_FLOAT16
 #include "sbgemm_kernel_16x8_zvl256b.c"
 #else
+#include "shgemm_kernel_16x8_zvl256b.c"
+#endif
+#else
+#ifndef TEST_FLOAT16
 #include "sbgemm_kernel_8x8_zvl128b.c"
+#else
+#include "shgemm_kernel_8x8_zvl128b.c"
+#endif
 #endif
 //#include "gemmkernel_2x2.c"
 #endif

@@ -4,5 +4,5 @@ export COMMON_FLAGS="${OPT_FLAGS} -march=rv64imafdcv_zvl256b_zvfh_zfh_zfbfmin_zv
 #export COMMON_FLAGS="${OPT_FLAGS} -march=rv64imafdcv_zvl128b_zvfh_zfh_zfbfmin_zvfbfmin_zvfbfwma -Wall"
 export COMMON_GFLAGS="${COMMON_FLAGS}"
 # Linux
-riscv64-unknown-linux-gnu-g++ ${COMMON_GFLAGS} testOpenBLAS.cpp -o testOpenBLAS
-#riscv64-unknown-linux-gnu-clang++ ${COMMON_FLAGS} -Wno-vla-cxx-extension testOpenBLAS.cpp -o testOpenBLAS
+#riscv64-unknown-linux-gnu-g++ ${COMMON_GFLAGS} testOpenBLAS.cpp -o testOpenBLAS
+riscv64-unknown-linux-gnu-clang++ ${COMMON_FLAGS} -Wno-vla-cxx-extension testOpenBLAS.cpp -o testOpenBLAS

@@ -22,6 +22,7 @@
 //#define DOUBLE
 #ifndef TEST_DOUBLE
 #define TEST_BFLOAT   // Test BF16
+#define TEST_FLOAT16  // Test FP16
 #endif
 #endif
 
@@ -93,7 +94,11 @@
 
 #define TEST_INC         1
 
+#ifndef TEST_FLOAT16
 #define bfloat16         __bf16
+#else
+#define bfloat16         _Float16
+#endif
 
 #ifdef TEST_FLOAT
 #define TEST_STR         "FP32"
@@ -114,7 +119,11 @@
 #define GEMM_UNROLL_N    4
 #endif
 #else
+#ifndef TEST_FLOAT16
 #define TEST_STR         "BF16"
+#else
+#define TEST_STR         "FP16"
+#endif
 #define IFLOAT           bfloat16
 #define GEMM_UNROLL_N    8
 #ifdef RVV_256
@@ -200,15 +209,52 @@ typedef union {
   bfloat16 q[2];
 } data;
 
+typedef union {
+  _Float16 f;
+  uint16_t s;
+} data2;
+
 FORCEINLINE float
 bfloat16tof32(bfloat16 f16)
 {
   data result;
+#ifndef TEST_FLOAT16
   result.i = 0;
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   result.q[0] = f16;
 #else
   result.q[1] = f16;
+#endif
+#else
+  data2 result2;
+  result2.f = f16;
+  uint32_t sign = result2.s >> 15;
+  uint32_t exponent = (result2.s >> 10) & 0x1F;
+  uint32_t fraction = (result2.s & 0x3FF);
+
+  if (exponent == 0) {
+    if (fraction == 0) {
+      // zero
+      result.i = (sign << 31);
+    } else {
+      // can be represented as ordinary value in float32
+      // 2 ** -14 * 0.0101
+      // => 2 ** -16 * 1.0100
+      exponent = 127 - 14;
+      while ((fraction & (1 << 10)) == 0) {
+        exponent--;
+        fraction <<= 1;
+      }
+      fraction &= 0x3FF;
+      result.i = (sign << 31) | (exponent << 23) | (fraction << 13);  
+    }    
+  } else if (exponent == 0x1F) {
+    /* Inf or NaN */
+    result.i = (sign << 31) | (0xFF << 23) | (fraction << 13);
+  } else {
+    /* ordinary number */
+    result.i = (sign << 31) | ((exponent + (127-15)) << 23) | (fraction << 13);
+  }
 #endif
   return result.f;
 }
