@@ -16,12 +16,20 @@
 #endif
 #else
 #define CNAME  BF16GEMM_N_RVV
-#include "gemmkernel_2x2.c"
+#ifdef RVV_256
+#include "sbgemm_kernel_16x8_zvl256b.c"
+#else
+#include "sbgemm_kernel_8x8_zvl128b.c"
+#endif
+//#include "gemmkernel_2x2.c"
 #endif
 #undef CNAME
 
 #ifndef TEST_BFLOAT
 #define CNAME  FP3264_PACK_MN
+#else
+#define CNAME  BF16_PACK_MN
+#endif
 #if GEMM_UNROLL_M == 16
 #ifdef VECTORIZE_PACK_N
 #include "gemm_ncopy_16_rvv.c"
@@ -70,7 +78,11 @@
 #endif
 #endif
 #undef CNAME
+#ifndef TEST_BFLOAT
 #define CNAME  FP3264_PACK_NN
+#else
+#define CNAME  BF16_PACK_NN
+#endif
 #if GEMM_UNROLL_N == 8
 #ifdef VECTORIZE_PACK_N
 #include "gemm_ncopy_8_rvv.c"
@@ -92,7 +104,11 @@
 #endif
 #undef CNAME
 
+#ifndef TEST_BFLOAT
 #define CNAME  FP3264_PACK_MT
+#else
+#define CNAME  BF16_PACK_MT
+#endif
 #if GEMM_UNROLL_M == 16
 #ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_16_rvv.c"
@@ -116,7 +132,11 @@
 #endif
 #endif
 #undef CNAME
+#ifndef TEST_BFLOAT
 #define CNAME  FP3264_PACK_NT
+#else
+#define CNAME  BF16_PACK_NT
+#endif
 #if GEMM_UNROLL_N == 8
 #ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_8_rvv.c"
@@ -156,13 +176,6 @@
 #define CNAME  GEMM_SMALL_M_PERMIT
 #include "gemm_small_kernel_permit_rvv.c"
 #undef CNAME
-#endif
-#else
-// Temp
-#define BF16_PACK_MN ((funcPACK *)NULL)
-#define BF16_PACK_NN ((funcPACK *)NULL)
-#define BF16_PACK_MT ((funcPACK *)NULL)
-#define BF16_PACK_NT ((funcPACK *)NULL)
 #endif
 #else
 

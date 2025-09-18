@@ -247,7 +247,7 @@ int FP3264GEMM_TT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT
 }
 
 #ifdef TEST_BFLOAT
-int BF16GEMM_N_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+int BF16GEMM_NN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT* A, IFLOAT* B, FLOAT* C, BLASLONG ldc)
 {
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line2 = j * K;
@@ -264,7 +264,39 @@ int BF16GEMM_N_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A
   return 0;
 }
 
-int BF16GEMM_T_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+int BF16GEMM_NT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT* A, IFLOAT* B, FLOAT* C, BLASLONG ldc)
+{
+  for (BLASLONG j = 0; j < N; j++) {
+    for (BLASLONG i = 0; i < M; i++) {
+      FLOAT t = 0;
+      BLASLONG line = i * K;
+      for (BLASLONG k = 0; k < K; k++) {
+        t += bfloat16tof32(A[line + k]) * bfloat16tof32(B[k * N + j]);
+      }
+      C[i] += (t * alpha);
+    }
+    C += ldc;
+  }
+  return 0;
+}
+
+int BF16GEMM_TN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT* A, IFLOAT* B, FLOAT* C, BLASLONG ldc)
+{
+  for (BLASLONG j = 0; j < N; j++) {
+    BLASLONG line2 = j * K;
+    for (BLASLONG i = 0; i < M; i++) {
+      FLOAT t = 0;
+      for (BLASLONG k = 0; k < K; k++) {
+        t += bfloat16tof32(A[k * M + i]) * bfloat16tof32(B[line2 + k]);
+      }
+      C[i] += (t * alpha);
+    }
+    C += ldc;
+  }
+  return 0;
+}
+
+int BF16GEMM_TT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT* A, IFLOAT* B, FLOAT* C, BLASLONG ldc)
 {
   for (BLASLONG j = 0; j < N; j++) {
     for (BLASLONG i = 0; i < M; i++) {

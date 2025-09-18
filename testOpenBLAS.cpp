@@ -16,10 +16,10 @@
 #define TEST_VECTOR   // Test GEMV
 #endif
 
-#define TEST_FLOAT    // Test FP32
+//#define TEST_FLOAT    // Test FP32
 #ifndef TEST_FLOAT
-#define TEST_DOUBLE   // Test FP64
-#define DOUBLE
+//#define TEST_DOUBLE   // Test FP64
+//#define DOUBLE
 #ifndef TEST_DOUBLE
 #define TEST_BFLOAT   // Test BF16
 #endif
@@ -30,7 +30,9 @@
 #endif
 
 #ifdef TEST_MATRIX
+#ifndef TEST_BFLOAT   // Temp
 #define TEST_SMALL_MATRIX    // Use small matrix (no packing)
+#endif
 #endif
 
 #ifdef VERIFY_MATRIX
@@ -44,7 +46,8 @@
 #define VECTORIZE_PACK_T     // Vectorize t_copy
 #endif
 
-#ifdef TEST_DOUBLE
+//#ifdef TEST_DOUBLE
+#if defined(TEST_DOUBLE) || defined(TEST_BFLOAT)   // Temp
 #undef VECTORIZE_PACK_N
 #undef VECTORIZE_PACK_T
 #endif
@@ -90,7 +93,7 @@
 
 #define TEST_INC         1
 
-#define bfloat16         unsigned short
+#define bfloat16         __bf16
 
 #ifdef TEST_FLOAT
 #define TEST_STR         "FP32"
@@ -113,6 +116,12 @@
 #else
 #define TEST_STR         "BF16"
 #define IFLOAT           bfloat16
+#define GEMM_UNROLL_N    8
+#ifdef RVV_256
+#define GEMM_UNROLL_M    16
+#else
+#define GEMM_UNROLL_M    8
+#endif
 #endif
 #if defined(TEST_FLOAT) || defined(TEST_BFLOAT)
 #define FLOAT            float
@@ -237,7 +246,11 @@ func *func_ptr(int test, int orient, int orient2)
             return FP3264GEMM_NT_generic;
           }
 #else
-          return BF16GEMM_N_generic;
+          if (orient2 == TEST_NOTRANSPOSE) {
+            return BF16GEMM_NN_generic;
+          } else {
+            return BF16GEMM_NT_generic;
+          }
 #endif
 #else
 #ifndef TEST_BFLOAT
@@ -275,7 +288,11 @@ func *func_ptr(int test, int orient, int orient2)
             return FP3264GEMM_TT_generic;
           }
 #else
-          return BF16GEMM_T_generic;
+          if (orient2 == TEST_NOTRANSPOSE) {
+            return BF16GEMM_TN_generic;
+          } else {
+            return BF16GEMM_TT_generic;
+          }
 #endif
 #else
 #ifndef TEST_BFLOAT
@@ -730,8 +747,8 @@ int main(int argc, char **argv)
   funcGEMM *test3_ptr = ((test == TEST_OPENBLAS) ? OLD_BF16_GEMM : NULL);
 #endif
 #ifdef TEST_MATRIX
-#ifndef TEST_BFLOAT
   funcPACK *packm_ptr, *packn_ptr;
+#ifndef TEST_BFLOAT
   if (orient == orient2) {
     packm_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_MT : FP3264_PACK_MN);
     packn_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_NT : FP3264_PACK_NN);
@@ -740,7 +757,13 @@ int main(int argc, char **argv)
     packn_ptr = ((orient2 != TEST_NOTRANSPOSE) ? FP3264_PACK_NT : FP3264_PACK_NN);
   }
 #else
-  funcPACK *pack_ptr = ((orient != TEST_NOTRANSPOSE) ? BF16_PACK_T : BF16_PACK_N);
+  if (orient == orient2) {
+    packm_ptr = ((orient != TEST_NOTRANSPOSE) ? BF16_PACK_MT : BF16_PACK_MN);
+    packn_ptr = ((orient != TEST_NOTRANSPOSE) ? BF16_PACK_NT : BF16_PACK_NN);
+  } else {
+    packm_ptr = ((orient2 != TEST_NOTRANSPOSE) ? BF16_PACK_MN : BF16_PACK_MT);
+    packn_ptr = ((orient2 != TEST_NOTRANSPOSE) ? BF16_PACK_NT : BF16_PACK_NN);
+  }
 #endif
 #endif
 

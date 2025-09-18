@@ -186,22 +186,22 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
             float result15 = 0;
 
             for (BLASLONG k=0; k<K; k++) {
-                result0+=(float)(A[ai+0]*B[bi+0]);
-                result1+=(float)(A[ai+1]*B[bi+0]);
-                result2+=(float)(A[ai+0]*B[bi+1]);
-                result3+=(float)(A[ai+1]*B[bi+1]);
-                result4+=(float)(A[ai+0]*B[bi+2]);
-                result5+=(float)(A[ai+1]*B[bi+2]);
-                result6+=(float)(A[ai+0]*B[bi+3]);
-                result7+=(float)(A[ai+1]*B[bi+3]);
-                result8+=(float)(A[ai+0]*B[bi+4]);
-                result9+=(float)(A[ai+1]*B[bi+4]);
-                result10+=(float)(A[ai+0]*B[bi+5]);
-                result11+=(float)(A[ai+1]*B[bi+5]);
-                result12+=(float)(A[ai+0]*B[bi+6]);
-                result13+=(float)(A[ai+1]*B[bi+6]);
-                result14+=(float)(A[ai+0]*B[bi+7]);
-                result15+=(float)(A[ai+1]*B[bi+7]);
+                result0+=(float)(A[ai+0])*(float)(B[bi+0]);
+                result1+=(float)(A[ai+1])*(float)(B[bi+0]);
+                result2+=(float)(A[ai+0])*(float)(B[bi+1]);
+                result3+=(float)(A[ai+1])*(float)(B[bi+1]);
+                result4+=(float)(A[ai+0])*(float)(B[bi+2]);
+                result5+=(float)(A[ai+1])*(float)(B[bi+2]);
+                result6+=(float)(A[ai+0])*(float)(B[bi+3]);
+                result7+=(float)(A[ai+1])*(float)(B[bi+3]);
+                result8+=(float)(A[ai+0])*(float)(B[bi+4]);
+                result9+=(float)(A[ai+1])*(float)(B[bi+4]);
+                result10+=(float)(A[ai+0])*(float)(B[bi+5]);
+                result11+=(float)(A[ai+1])*(float)(B[bi+5]);
+                result12+=(float)(A[ai+0])*(float)(B[bi+6]);
+                result13+=(float)(A[ai+1])*(float)(B[bi+6]);
+                result14+=(float)(A[ai+0])*(float)(B[bi+7]);
+                result15+=(float)(A[ai+1])*(float)(B[bi+7]);
                 ai+=2;
                 bi+=8;
             }
@@ -242,14 +242,14 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
             BLASLONG bi = n_top * K;
 
             for (BLASLONG k=0; k<K; k++) {
-                result0+=(float)(A[ai+0]*B[bi+0]);
-                result1+=(float)(A[ai+0]*B[bi+1]);
-                result2+=(float)(A[ai+0]*B[bi+2]);
-                result3+=(float)(A[ai+0]*B[bi+3]);
-                result4+=(float)(A[ai+0]*B[bi+4]);
-                result5+=(float)(A[ai+0]*B[bi+5]);
-                result6+=(float)(A[ai+0]*B[bi+6]);
-                result7+=(float)(A[ai+0]*B[bi+7]);
+                result0+=(float)(A[ai+0])*(float)(B[bi+0]);
+                result1+=(float)(A[ai+0])*(float)(B[bi+1]);
+                result2+=(float)(A[ai+0])*(float)(B[bi+2]);
+                result3+=(float)(A[ai+0])*(float)(B[bi+3]);
+                result4+=(float)(A[ai+0])*(float)(B[bi+4]);
+                result5+=(float)(A[ai+0])*(float)(B[bi+5]);
+                result6+=(float)(A[ai+0])*(float)(B[bi+6]);
+                result7+=(float)(A[ai+0])*(float)(B[bi+7]);
                 ai+=1;
                 bi+=8;
             }
@@ -386,14 +386,14 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
             float result7 = 0;
 
             for (BLASLONG k=0; k<K; k++) {
-                result0+=(float)(A[ai+0]*B[bi+0]);
-                result1+=(float)(A[ai+1]*B[bi+0]);
-                result2+=(float)(A[ai+0]*B[bi+1]);
-                result3+=(float)(A[ai+1]*B[bi+1]);
-                result4+=(float)(A[ai+0]*B[bi+2]);
-                result5+=(float)(A[ai+1]*B[bi+2]);
-                result6+=(float)(A[ai+0]*B[bi+3]);
-                result7+=(float)(A[ai+1]*B[bi+3]);
+                result0+=(float)(A[ai+0])*(float)(B[bi+0]);
+                result1+=(float)(A[ai+1])*(float)(B[bi+0]);
+                result2+=(float)(A[ai+0])*(float)(B[bi+1]);
+                result3+=(float)(A[ai+1])*(float)(B[bi+1]);
+                result4+=(float)(A[ai+0])*(float)(B[bi+2]);
+                result5+=(float)(A[ai+1])*(float)(B[bi+2]);
+                result6+=(float)(A[ai+0])*(float)(B[bi+3]);
+                result7+=(float)(A[ai+1])*(float)(B[bi+3]);
                 ai+=2;
                 bi+=4;
             }
@@ -422,10 +422,10 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
             BLASLONG bi = n_top * K;
 
             for (BLASLONG k=0; k<K; k++) {
-                result0+=(float)(A[ai+0]*B[bi+0]);
-                result1+=(float)(A[ai+0]*B[bi+1]);
-                result2+=(float)(A[ai+0]*B[bi+2]);
-                result3+=(float)(A[ai+0]*B[bi+3]);
+                result0+=(float)(A[ai+0])*(float)(B[bi+0]);
+                result1+=(float)(A[ai+0])*(float)(B[bi+1]);
+                result2+=(float)(A[ai+0])*(float)(B[bi+2]);
+                result3+=(float)(A[ai+0])*(float)(B[bi+3]);
                 ai+=1;
                 bi+=4;
             }
@@ -528,10 +528,10 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
             float result3 = 0;
 
             for (BLASLONG k=0; k<K; k++) {
-                result0+=(float)(A[ai+0]*B[bi+0]);
-                result1+=(float)(A[ai+1]*B[bi+0]);
-                result2+=(float)(A[ai+0]*B[bi+1]);
-                result3+=(float)(A[ai+1]*B[bi+1]);
+                result0+=(float)(A[ai+0])*(float)(B[bi+0]);
+                result1+=(float)(A[ai+1])*(float)(B[bi+0]);
+                result2+=(float)(A[ai+0])*(float)(B[bi+1]);
+                result3+=(float)(A[ai+1])*(float)(B[bi+1]);
                 ai+=2;
                 bi+=2;
             }
@@ -555,8 +555,8 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
             BLASLONG bi = n_top * K;
 
             for (BLASLONG k=0; k<K; k++) {
-                result0+=(float)(A[ai+0]*B[bi+0]);
-                result1+=(float)(A[ai+0]*B[bi+1]);
+                result0+=(float)(A[ai+0])*(float)(B[bi+0]);
+                result1+=(float)(A[ai+0])*(float)(B[bi+1]);
                 ai+=1;
                 bi+=2;
             }
@@ -641,8 +641,8 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
             float result1 = 0;
 
             for (BLASLONG k=0; k<K; k++) {
-                result0+=(float)(A[ai+0]*B[bi+0]);
-                result1+=(float)(A[ai+1]*B[bi+0]);
+                result0+=(float)(A[ai+0])*(float)(B[bi+0]);
+                result1+=(float)(A[ai+1])*(float)(B[bi+0]);
                 ai+=2;
                 bi+=1;
             }
@@ -662,7 +662,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
             BLASLONG bi = n_top * K;
 
             for (BLASLONG k=0; k<K; k++) {
-                result0+=(float)(A[ai+0]*B[bi+0]);
+                result0+=(float)(A[ai+0])*(float)(B[bi+0]);
                 ai+=1;
                 bi+=1;
             }
