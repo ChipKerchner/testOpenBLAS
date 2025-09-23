@@ -22,7 +22,7 @@
 //#define DOUBLE
 #ifndef TEST_DOUBLE
 #define TEST_BFLOAT   // Test BF16
-#define TEST_FLOAT16  // Test FP16
+//#define TEST_FLOAT16  // Test FP16
 #endif
 #endif
 
@@ -246,8 +246,8 @@ bfloat16tof32(bfloat16 f16)
         fraction <<= 1;
       }
       fraction &= 0x3FF;
-      result.i = (sign << 31) | (exponent << 23) | (fraction << 13);  
-    }    
+      result.i = (sign << 31) | (exponent << 23) | (fraction << 13);
+    }
   } else if (exponent == 0x1F) {
     /* Inf or NaN */
     result.i = (sign << 31) | (0xFF << 23) | (fraction << 13);
