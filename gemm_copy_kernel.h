@@ -40,9 +40,7 @@
 #endif
 #if GEMM_UNROLL_M == 16
 #ifdef VECTORIZE_PACK_N
-#ifdef TEST_BFLOAT
-#include "gemm_ncopy_16bf_rvv.c"
-#elif defined(TEST_FLOAT16)
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 #include "gemm_ncopy_16fp_rvv.c"
 #else
 #include "gemm_ncopy_16_rvv.c"
@@ -69,9 +67,7 @@
 #endif
 #else
 #ifdef VECTORIZE_PACK_N
-#ifdef TEST_BFLOAT
-#include "gemm_ncopy_8bf_rvv.c"
-#elif defined(TEST_FLOAT16)
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 #include "gemm_ncopy_8fp_rvv.c"
 #else
 #include "gemm_ncopy_8_rvv.c"
@@ -105,9 +101,7 @@
 #endif
 #if GEMM_UNROLL_N == 8
 #ifdef VECTORIZE_PACK_N
-#ifdef TEST_BFLOAT
-#include "gemm_ncopy_8bf_rvv.c"
-#elif defined(TEST_FLOAT16)
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 #include "gemm_ncopy_8fp_rvv.c"
 #else
 #include "gemm_ncopy_8_rvv.c"
@@ -138,6 +132,11 @@
 #if GEMM_UNROLL_M == 16
 #ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_16_rvv.c"
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
+//#include "gemm_tcopy_16fp_rvv.c"
+#else
+#include "gemm_tcopy_16_rvv.c"
+#endif
 #undef FLOAT_V_T
 #undef FLOAT_V_T_HALF
 #undef VLEV_FLOAT
@@ -150,6 +149,11 @@
 #else
 #ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_8_rvv.c"
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
+//#include "gemm_tcopy_8fp_rvv.c"
+#else
+#include "gemm_tcopy_8_rvv.c"
+#endif
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
 #undef VSEV_FLOAT
@@ -166,16 +170,16 @@
 #if GEMM_UNROLL_N == 8
 #ifdef VECTORIZE_PACK_T
 #include "gemm_tcopy_8_rvv.c"
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
+//#include "gemm_tcopy_8fp_rvv.c"
+#else
+#include "gemm_tcopy_8_rvv.c"
+#endif
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
 #undef VSEV_FLOAT
 #else
 #include "gemm_tcopy_8.c"
-#ifdef TEST_BFLOAT
-//#include "gemm_tcopy_8bf_rvv.c"
-#else
-//#include "gemm_tcopy_8fp_rvv.c"
-#endif
 #endif
 #else
 #ifdef VECTORIZE_PACK_T

@@ -31,6 +31,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VSETVL2(n)              __riscv_vsetvl_e16m2(n)
 #define VSETVL4(n)              __riscv_vsetvl_e16m4(n)
 #define VSETVL8(n)              __riscv_vsetvl_e16m8(n)
+#if defined(HFLOAT16)
 #define FLOAT_V_T               vfloat16m1_t
 #define FLOAT_V2_T              vfloat16m2_t
 #define FLOAT_V4_T              vfloat16m4_t
@@ -60,6 +61,37 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VSSEG2_FLOAT            __riscv_vsseg2e16_v_f16m4x2
 #define VSSEG4_FLOAT            __riscv_vsseg4e16_v_f16m2x4
 #define VSSEG8_FLOAT            __riscv_vsseg8e16_v_f16m1x8
+#else
+#define FLOAT_V_T               vbfloat16m1_t
+#define FLOAT_V2_T              vbfloat16m2_t
+#define FLOAT_V4_T              vbfloat16m4_t
+#define FLOAT_V8_T              vbfloat16m8_t
+#define FLOAT_VX2_T             vbfloat16m1x2_t
+#define FLOAT_VX4_T             vbfloat16m1x4_t
+#define FLOAT_VX8_T             vbfloat16m1x8_t
+#define FLOAT_VX24_T            vbfloat16m4x2_t
+#define FLOAT_VX42_T            vbfloat16m2x4_t
+#define VLSEG2_FLOAT            __riscv_vlse16_v_bf16m2
+#define VLSSEG2_FLOAT           __riscv_vlsseg2e16_v_bf16m1x2
+#define VLSSEG4_FLOAT           __riscv_vlsseg4e16_v_bf16m1x4
+#define VLSSEG8_FLOAT           __riscv_vlsseg8e16_v_bf16m1x8
+#define VGET_VX2                __riscv_vget_v_bf16m1x2_bf16m1
+#define VGET_VX4                __riscv_vget_v_bf16m1x4_bf16m1
+#define VGET_VX8                __riscv_vget_v_bf16m1x8_bf16m1
+#define VSET_VX2                __riscv_vset_v_bf16m4_bf16m4x2
+#define VSET_VX4                __riscv_vset_v_bf16m2_bf16m2x4
+#define VSET_VX8                __riscv_vset_v_bf16m1_bf16m1x8
+#define VLEV_FLOAT              __riscv_vle16_v_bf16m1
+#define VLEV_FLOAT2             __riscv_vle16_v_bf16m2
+#define VLEV_FLOAT4             __riscv_vle16_v_bf16m4
+#define VLEV_FLOAT8             __riscv_vle16_v_bf16m8
+#define VSEV_FLOAT              __riscv_vse16_v_bf16m1
+#define VSEV_FLOAT2             __riscv_vse16_v_bf16m2
+#define VSEV_FLOAT8             __riscv_vse16_v_bf16m8
+#define VSSEG2_FLOAT            __riscv_vsseg2e16_v_bf16m4x2
+#define VSSEG4_FLOAT            __riscv_vsseg4e16_v_bf16m2x4
+#define VSSEG8_FLOAT            __riscv_vsseg8e16_v_bf16m1x8
+#endif
 
 // Optimizes the implementation in ../generic/gemm_ncopy_16.c
 

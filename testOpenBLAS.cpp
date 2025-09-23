@@ -23,6 +23,12 @@
 #ifndef TEST_DOUBLE
 #define TEST_BFLOAT   // Test BF16
 //#define TEST_FLOAT16  // Test FP16
+
+#ifdef TEST_BFLOAT
+#define BFLOAT16
+#elif defined(TEST_FLOAT16)
+#define HFLOAT16
+#endif
 #endif
 #endif
 
@@ -49,7 +55,7 @@
 
 //#ifdef TEST_DOUBLE
 #if defined(TEST_DOUBLE) || defined(TEST_BFLOAT) || defined(TEST_FLOAT16)   // Temp
-#undef VECTORIZE_PACK_N
+//#undef VECTORIZE_PACK_N
 #undef VECTORIZE_PACK_T
 #endif
 
