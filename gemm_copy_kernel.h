@@ -33,7 +33,7 @@
 #endif
 #undef CNAME
 
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
 #define CNAME  FP3264_PACK_MN
 #else
 #define CNAME  BF16_PACK_MN
@@ -60,6 +60,11 @@
 #undef VSETVL8
 #else
 #include "gemm_ncopy_16.c"
+#ifdef TEST_BFLOAT
+//#include "gemm_ncopy_16bf_rvv.c"
+#else
+//#include "gemm_ncopy_16fp_rvv.c"
+#endif
 #endif
 #else
 #ifdef VECTORIZE_PACK_N
@@ -83,10 +88,15 @@
 #undef VSETVL8
 #else
 #include "gemm_ncopy_8.c"
+#ifdef TEST_BFLOAT
+//#include "gemm_ncopy_8bf_rvv.c"
+#else
+//#include "gemm_ncopy_8fp_rvv.c"
+#endif
 #endif
 #endif
 #undef CNAME
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
 #define CNAME  FP3264_PACK_NN
 #else
 #define CNAME  BF16_PACK_NN
@@ -99,6 +109,11 @@
 #undef VSEV_FLOAT
 #else
 #include "gemm_ncopy_8.c"
+#ifdef TEST_BFLOAT
+//#include "gemm_ncopy_8bf_rvv.c"
+#else
+//#include "gemm_ncopy_8fp_rvv.c"
+#endif
 #endif
 #else
 #ifdef VECTORIZE_PACK_N
@@ -112,7 +127,7 @@
 #endif
 #undef CNAME
 
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
 #define CNAME  FP3264_PACK_MT
 #else
 #define CNAME  BF16_PACK_MT
@@ -128,6 +143,11 @@
 #undef VSEV_FLOAT_HALF
 #else
 #include "gemm_tcopy_16.c"
+#ifdef TEST_BFLOAT
+//#include "gemm_tcopy_16bf_rvv.c"
+#else
+//#include "gemm_tcopy_16fp_rvv.c"
+#endif
 #endif
 #else
 #ifdef VECTORIZE_PACK_T
@@ -137,10 +157,15 @@
 #undef VSEV_FLOAT
 #else
 #include "gemm_tcopy_8.c"
+#ifdef TEST_BFLOAT
+//#include "gemm_tcopy_8bf_rvv.c"
+#else
+//#include "gemm_tcopy_8fp_rvv.c"
+#endif
 #endif
 #endif
 #undef CNAME
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
 #define CNAME  FP3264_PACK_NT
 #else
 #define CNAME  BF16_PACK_NT
@@ -153,6 +178,11 @@
 #undef VSEV_FLOAT
 #else
 #include "gemm_tcopy_8.c"
+#ifdef TEST_BFLOAT
+//#include "gemm_tcopy_8bf_rvv.c"
+#else
+//#include "gemm_tcopy_8fp_rvv.c"
+#endif
 #endif
 #else
 #ifdef VECTORIZE_PACK_T
@@ -187,7 +217,7 @@
 #endif
 #else
 
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
 #define CNAME  FP3264GEMV_N_RVV
 #include "gemv_n_vector.c"
 #undef VSETVL

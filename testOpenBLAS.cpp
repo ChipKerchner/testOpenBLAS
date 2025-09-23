@@ -31,7 +31,7 @@
 #endif
 
 #ifdef TEST_MATRIX
-#ifndef TEST_BFLOAT   // Temp
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)    // Temp
 #define TEST_SMALL_MATRIX    // Use small matrix (no packing)
 #endif
 #endif
@@ -48,7 +48,7 @@
 #endif
 
 //#ifdef TEST_DOUBLE
-#if defined(TEST_DOUBLE) || defined(TEST_BFLOAT)   // Temp
+#if defined(TEST_DOUBLE) || defined(TEST_BFLOAT) || defined(TEST_FLOAT16)   // Temp
 #undef VECTORIZE_PACK_N
 #undef VECTORIZE_PACK_T
 #endif
@@ -132,7 +132,7 @@
 #define GEMM_UNROLL_M    8
 #endif
 #endif
-#if defined(TEST_FLOAT) || defined(TEST_BFLOAT)
+#if defined(TEST_FLOAT) || defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 #define FLOAT            float
 #else
 #define FLOAT            double
@@ -285,7 +285,7 @@ func *func_ptr(int test, int orient, int orient2)
       switch (test) {
         case TEST_GENERIC:
 #ifdef TEST_MATRIX
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
           if (orient2 == TEST_NOTRANSPOSE) {
             return FP3264GEMM_NN_generic;
           } else {
@@ -299,7 +299,7 @@ func *func_ptr(int test, int orient, int orient2)
           }
 #endif
 #else
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
           return FP3264GEMV_N_generic;
 #else
           return BF16GEMV_N_generic;
@@ -308,13 +308,13 @@ func *func_ptr(int test, int orient, int orient2)
           break;
         case TEST_RVV:
 #ifdef TEST_MATRIX
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
           return FP3264GEMM_N_RVV;
 #else
           return BF16GEMM_N_RVV;
 #endif
 #else
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
           return FP3264GEMV_N_RVV;
 #else
           return BF16GEMV_N_RVV;
@@ -327,7 +327,7 @@ func *func_ptr(int test, int orient, int orient2)
       switch (test) {
         case TEST_GENERIC:
 #ifdef TEST_MATRIX
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
           if (orient2 == TEST_NOTRANSPOSE) {
             return FP3264GEMM_TN_generic;
           } else {
@@ -341,7 +341,7 @@ func *func_ptr(int test, int orient, int orient2)
           }
 #endif
 #else
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
           return FP3264GEMV_T_generic;
 #else
           return BF16GEMV_T_generic;
@@ -350,13 +350,13 @@ func *func_ptr(int test, int orient, int orient2)
           break;
         case TEST_RVV:
 #ifdef TEST_MATRIX
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
           return FP3264GEMM_N_RVV;
 #else
           return BF16GEMM_N_RVV;
 #endif
 #else
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
           return FP3264GEMV_T_RVV;
 #else
           return BF16GEMV_T_RVV;
@@ -454,7 +454,7 @@ FORCEINLINE FLOAT get_rand(int x)
 FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
 {
   FLOAT x = get_rand(y);
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
   input_array0[i] = x;
 #else
   input_array0[i] = float32tobf16(x);
@@ -464,7 +464,7 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
 FORCEINLINE void init_array2(BLASLONG i, int y, FLOAT *input_array0)
 {
   FLOAT x = get_rand(y);
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
   input_array0[i] = x;
 #else
   input_array0[i] = bfloat16tof32(float32tobf16(x));
@@ -520,7 +520,7 @@ int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N,
 FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0, FLOAT *input_array1)
 {
   FLOAT x = get_rand(y);
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
   input_array0[i] = input_array1[i] = x;
 #else
   input_array0[i] = float32tobf16(x);
@@ -794,7 +794,7 @@ int main(int argc, char **argv)
 #endif
 #ifdef TEST_MATRIX
   funcPACK *packm_ptr, *packn_ptr;
-#ifndef TEST_BFLOAT
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
   if (orient == orient2) {
     packm_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_MT : FP3264_PACK_MN);
     packn_ptr = ((orient != TEST_NOTRANSPOSE) ? FP3264_PACK_NT : FP3264_PACK_NN);
@@ -908,7 +908,7 @@ int main(int argc, char **argv)
     init(input_matrix0, input_matrix1, output_matrix0, in, out, K);
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
 #else
-#ifndef TEST_BFLOAT  // Temp
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)   // Temp
     init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, N0);
 #endif
 #endif
@@ -982,7 +982,7 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
 #else
-#ifndef TEST_BFLOAT  // Temp
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)   // Temp
     if (verify(test, orient, orient2, M0, N0, N0, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input)) {
 #else
     if (1) {

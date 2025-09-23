@@ -35,7 +35,7 @@ static void GEMV_N_beta(BLASLONG n, FLOAT *output_vector, FLOAT *input_vector, F
   }
 }
 
-#ifdef TEST_BFLOAT
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 int BF16GEMV_T_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *buffer)
 {
   GEMV_N_beta(N, output, buffer, 1.0);
@@ -65,7 +65,7 @@ int FP3264GEMV_T_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, I
   return 0;
 }
 
-#ifdef TEST_BFLOAT
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 int BF16GEMV_T_RVV(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *buffer)
 {
 #if 0
@@ -128,7 +128,7 @@ int FP3264GEMV_N_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, I
   return 0;
 }
 
-#ifdef TEST_BFLOAT
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 int BF16GEMV_N_RVV(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *buffer)
 {
 #if 0
@@ -246,7 +246,7 @@ int FP3264GEMM_TT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT
   return 0;
 }
 
-#ifdef TEST_BFLOAT
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 int BF16GEMM_NN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT* A, IFLOAT* B, FLOAT* C, BLASLONG ldc)
 {
   for (BLASLONG j = 0; j < N; j++) {
