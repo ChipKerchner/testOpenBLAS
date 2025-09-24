@@ -131,9 +131,8 @@
 #endif
 #if GEMM_UNROLL_M == 16
 #ifdef VECTORIZE_PACK_T
-#include "gemm_tcopy_16_rvv.c"
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
-//#include "gemm_tcopy_16fp_rvv.c"
+#include "gemm_tcopy_16fp_rvv.c"
 #else
 #include "gemm_tcopy_16_rvv.c"
 #endif
@@ -148,9 +147,8 @@
 #endif
 #else
 #ifdef VECTORIZE_PACK_T
-#include "gemm_tcopy_8_rvv.c"
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
-//#include "gemm_tcopy_8fp_rvv.c"
+#include "gemm_tcopy_8fp_rvv.c"
 #else
 #include "gemm_tcopy_8_rvv.c"
 #endif
@@ -169,9 +167,8 @@
 #endif
 #if GEMM_UNROLL_N == 8
 #ifdef VECTORIZE_PACK_T
-#include "gemm_tcopy_8_rvv.c"
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
-//#include "gemm_tcopy_8fp_rvv.c"
+#include "gemm_tcopy_8fp_rvv.c"
 #else
 #include "gemm_tcopy_8_rvv.c"
 #endif
