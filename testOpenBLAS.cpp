@@ -53,9 +53,8 @@
 #define VECTORIZE_PACK_T     // Vectorize t_copy
 #endif
 
-//#ifdef TEST_DOUBLE
-#if defined(TEST_DOUBLE) || defined(TEST_BFLOAT) || defined(TEST_FLOAT16)   // Temp
-//#undef VECTORIZE_PACK_N
+#ifdef TEST_DOUBLE
+#undef VECTORIZE_PACK_N
 #undef VECTORIZE_PACK_T
 #endif
 
