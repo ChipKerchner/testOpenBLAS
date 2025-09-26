@@ -120,13 +120,21 @@ endif
 
 DGEMMKERNEL    =  dgemm_kernel_$(DGEMM_UNROLL_M)x$(DGEMM_UNROLL_N)_zvl128b.c
 DGEMMONCOPY    =  ../generic/gemm_ncopy_$(DGEMM_UNROLL_N).c
+ifneq ($(filter $(DGEMM_UNROLL_N),4 8 16),)
+DGEMMOTCOPY    =  gemm_tcopy_$(DGEMM_UNROLL_N)_rvv.c
+else
 DGEMMOTCOPY    =  ../generic/gemm_tcopy_$(DGEMM_UNROLL_N).c
+endif
 DGEMMONCOPYOBJ =  dgemm_oncopy$(TSUFFIX).$(SUFFIX)
 DGEMMOTCOPYOBJ =  dgemm_otcopy$(TSUFFIX).$(SUFFIX)
 
 ifneq ($(DGEMM_UNROLL_M), $(DGEMM_UNROLL_N))
 DGEMMINCOPY    =  ../generic/gemm_ncopy_$(DGEMM_UNROLL_M).c
+ifneq ($(filter $(DGEMM_UNROLL_M),4 8 16),)
+DGEMMITCOPY    =  gemm_tcopy_$(DGEMM_UNROLL_M)_rvv.c
+else
 DGEMMITCOPY    =  ../generic/gemm_tcopy_$(DGEMM_UNROLL_M).c
+endif
 DGEMMINCOPYOBJ =  dgemm_incopy$(TSUFFIX).$(SUFFIX)
 DGEMMITCOPYOBJ =  dgemm_itcopy$(TSUFFIX).$(SUFFIX)
 endif

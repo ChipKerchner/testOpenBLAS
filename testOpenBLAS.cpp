@@ -16,12 +16,12 @@
 #define TEST_VECTOR   // Test GEMV
 #endif
 
-//#define TEST_FLOAT    // Test FP32
+#define TEST_FLOAT    // Test FP32
 #ifndef TEST_FLOAT
 //#define TEST_DOUBLE   // Test FP64
 //#define DOUBLE
 #ifndef TEST_DOUBLE
-#define TEST_BFLOAT   // Test BF16
+//#define TEST_BFLOAT   // Test BF16
 //#define TEST_FLOAT16  // Test FP16
 
 #ifdef TEST_BFLOAT
@@ -49,13 +49,10 @@
 #define VECTORIZE_PACK  // Use vectorize packing (if available)
 
 #ifdef VECTORIZE_PACK
+#ifndef TEST_DOUBLE
 #define VECTORIZE_PACK_N     // Vectorize n_copy
-#define VECTORIZE_PACK_T     // Vectorize t_copy
 #endif
-
-#ifdef TEST_DOUBLE
-#undef VECTORIZE_PACK_N
-#undef VECTORIZE_PACK_T
+#define VECTORIZE_PACK_T     // Vectorize t_copy
 #endif
 
 #ifdef RVV_256
@@ -177,6 +174,19 @@ typedef int funcGEMV(BLASLONG, BLASLONG, BLASLONG, FLOAT, IFLOAT *, BLASLONG, IF
 typedef int funcGEMM(BLASLONG, BLASLONG, BLASLONG, FLOAT, IFLOAT *, IFLOAT *, FLOAT *, BLASLONG);
 typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 
+FORCEINLINE timer_t get_rvv_timer()
+{
+#if 0
+  uint64_t val;
+  asm volatile("rdcycle %0" : "=r"(val));
+  return val;
+#else
+  struct timespec ts;
+  clock_gettime(CLOCK_REALTIME, &ts);
+  return (uint64_t)(ts.tv_sec) * 1000000000 + ts.tv_nsec;
+#endif
+}
+
 #include "gemm_copy_kernel.h"
 
 #ifdef B0
@@ -194,19 +204,6 @@ typedef int funcGEMMsmall(BLASLONG, BLASLONG, BLASLONG, IFLOAT *, BLASLONG, FLOA
 #else
 #define TEST_BETA        4.0
 #endif
-
-FORCEINLINE timer_t get_rvv_timer()
-{
-#if 0
-  uint64_t val;
-  asm volatile("rdcycle %0" : "=r"(val));
-  return val;
-#else
-  struct timespec ts;
-  clock_gettime(CLOCK_REALTIME, &ts);
-  return (uint64_t)(ts.tv_sec) * 1000000000 + ts.tv_nsec;
-#endif
-}
 
 typedef union {
   float f;
