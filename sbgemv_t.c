@@ -28,17 +28,15 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common.h"
 #include "bf16_macros.h"
 
-int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y)
-{
-    BLASLONG i;
-    BLASLONG ix, iy;
-    BLASLONG j;
-    FLOAT *a_ptr;
-#ifdef BGEMM
-    float temp;
+#ifdef B0
+int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y, FLOAT *buffer)
 #else
-    FLOAT temp;
+int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT *y, BLASLONG inc_y, FLOAT *buffer)
 #endif
+{
+    BLASLONG i, j, ix, iy;
+    IFLOAT *a_ptr;
+    FLOAT temp;
 
     iy = 0;
     a_ptr = a;
@@ -52,7 +50,7 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *
             temp += BF16TOF32(a_ptr[i]) * BF16TOF32(x[ix]);
             ix += inc_x;
         }
-        y[iy] += F32TOBF16(ALPHA * temp);
+        y[iy] += alpha * temp;
         iy += inc_y;
         a_ptr += lda;
     }

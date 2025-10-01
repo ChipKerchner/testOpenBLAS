@@ -28,17 +28,15 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common.h"
 #include "bf16_macros.h"
 
-int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y)
-{
-    BLASLONG i;
-    BLASLONG ix, iy;
-    BLASLONG j;
-    FLOAT *a_ptr;
-#ifdef BGEMM
-    float temp;
+#ifdef B0
+int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y, FLOAT *buffer)
 #else
-    FLOAT temp;
+int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT *y, BLASLONG inc_y, FLOAT *buffer)
 #endif
+{
+    BLASLONG ix, iy;
+    IFLOAT *a_ptr;
+    FLOAT temp;
 
     iy = 0;
     for (BLASLONG i = 0; i < m; i++)
@@ -54,14 +52,11 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *
             a_ptr += lda;
         }
 
-        if (BETA == ZERO)
-        {
-            y[iy] = F32TOBF16(ALPHA * temp);
-        }
-        else
-        {
-            y[iy] = F32TOBF16(ALPHA * temp + BETA * BF16TOF32(y[iy]));
-        }
+#ifdef B0
+        y[iy] = alpha * temp + beta * y[iy];
+#else
+        y[iy] += alpha * temp;
+#endif
 
         iy += inc_y;
     }

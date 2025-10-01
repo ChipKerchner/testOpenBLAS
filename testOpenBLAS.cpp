@@ -160,13 +160,20 @@
 
 #define FORCEINLINE      inline __attribute__((always_inline))
 
-#define BF16_EPSILON     (FLOAT)(1 << ((sizeof(FLOAT) - sizeof(IFLOAT)) * 8))
-#ifdef TEST_FLOAT
+#ifdef TEST_BFLOAT
+#define FLOAT_EPSILON    ((FLOAT)(1) / (FLOAT)(1 << 7))
+#elif TEST_FLOAT16
+#define FLOAT_EPSILON    ((FLOAT)(1) / (FLOAT)(1 << 10))
+#elif defined(TEST_FLOAT)
 #define FLOAT_EPSILON    (FLOAT)(FLT_EPSILON)
 #else
 #define FLOAT_EPSILON    (FLOAT)(DBL_EPSILON)
 #endif
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
+#define TRANS_EPSILON    1
+#else
 #define TRANS_EPSILON    4 * 8
+#endif
 
 #define NBMAX            4096
 
@@ -407,11 +414,18 @@ float32tobf16(float inp)
 {
   data inp1;
   inp1.f = inp;
+//#ifndef TEST_FLOAT16
+#if 1
   inp1.i += ((inp1.i >> 16) & 0x1) + 0x7fff;
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   return inp1.q[0];
 #else
   return inp1.q[1];
+#endif
+#else
+  return ((inp1.i >> 16) & 0x8000) |
+          ((((inp1.i & 0x7f800000) - 0x38000000) >> 13) & 0x7c00) |
+          ((inp1.i >> 13) & 0x03ff);
 #endif
 }
 
@@ -452,6 +466,17 @@ FORCEINLINE FLOAT get_rand(int x)
   return ((FLOAT)x / (FLOAT) RAND_MAX) + 0.5;
 }
 
+FORCEINLINE void init_array2(BLASLONG i, int y, FLOAT *input_array0)
+{
+  FLOAT x = get_rand(y);
+#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
+  input_array0[i] = x;
+#else
+  input_array0[i] = bfloat16tof32(float32tobf16(x));
+//printf("%9.6f %9.6f\n", x, input_array0[i]);
+#endif
+}
+
 #ifdef TEST_MATRIX
 FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
 {
@@ -460,16 +485,6 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
   input_array0[i] = x;
 #else
   input_array0[i] = float32tobf16(x);
-#endif
-}
-
-FORCEINLINE void init_array2(BLASLONG i, int y, FLOAT *input_array0)
-{
-  FLOAT x = get_rand(y);
-#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
-  input_array0[i] = x;
-#else
-  input_array0[i] = bfloat16tof32(float32tobf16(x));
 #endif
 }
 
@@ -519,18 +534,18 @@ int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N,
   return 0;
 }
 #else
-FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0, FLOAT *input_array1)
+FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0, IFLOAT *input_array1)
 {
   FLOAT x = get_rand(y);
 #if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
   input_array0[i] = input_array1[i] = x;
 #else
-  input_array0[i] = float32tobf16(x);
-  input_array1[i] = bfloat16tof32(input_array0[i]);
+  input_array0[i] = input_array1[i] = float32tobf16(x);
+//  input_array1[i] = bfloat16tof32(input_array0[i]);
 #endif
 }
 
-void init(IFLOAT *input_matrix, FLOAT *input_matrix2, IFLOAT *input_vector, FLOAT *input_vector1,
+void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, IFLOAT *input_vector, IFLOAT *input_vector1,
           BLASLONG M, BLASLONG N, BLASLONG in, FLOAT *input, BLASLONG out)
 {
   for (BLASLONG j = 0; j < N; j++) {
@@ -543,7 +558,7 @@ void init(IFLOAT *input_matrix, FLOAT *input_matrix2, IFLOAT *input_vector, FLOA
     init_array(j, rand_value(), input_vector, input_vector1);
   }
   for (BLASLONG j = 0; j < out; j++) {
-    input[j] = get_rand(rand_value());
+    init_array2(j, rand_value(), input);
   }
 }
 
@@ -600,8 +615,8 @@ int test_F32(int orient, FLOAT *input_matrix1, FLOAT *input_vector, FLOAT *outpu
 int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG K, IFLOAT *input_matrix0,
            IFLOAT *input_matrix1, FLOAT *output0, FLOAT *output1, FLOAT alpha)
 #else
-int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG out, FLOAT *input_matrix1,
-           FLOAT *input_vector1, FLOAT *output0, FLOAT *output1, FLOAT *output2, FLOAT alpha, FLOAT beta,
+int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG out, IFLOAT *input_matrix1,
+           IFLOAT *input_vector1, FLOAT *output0, FLOAT *output1, FLOAT *output2, FLOAT alpha, FLOAT beta,
            FLOAT *input)
 #endif
 {
@@ -848,8 +863,8 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     FLOAT *output_matrix0 = NULL, *output_matrix1 = NULL, *output_matrix2 = NULL;
 #else
-    IFLOAT input_vector0[in];
-    FLOAT input_vector1[in], output0[N0], output1[N0], output2[N0], input[N0];
+    IFLOAT input_vector0[in], input_vector1[in];
+    FLOAT output0[N0], output1[N0], output2[N0], input[N0];
 #endif
     IFLOAT *input_matrix0 = NULL, *input_matrix1 = NULL;
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)
@@ -910,9 +925,7 @@ int main(int argc, char **argv)
     init(input_matrix0, input_matrix1, output_matrix0, in, out, K);
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
 #else
-#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)   // Temp
     init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, N0);
-#endif
 #endif
 #ifdef TEST_MATRIX
     gen_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix0, in);
@@ -984,11 +997,7 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
 #else
-#if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)   // Temp
     if (verify(test, orient, orient2, M0, N0, N0, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input)) {
-#else
-    if (1) {
-#endif
 #endif
       return 1;
     }
