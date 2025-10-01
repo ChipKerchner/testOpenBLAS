@@ -162,7 +162,7 @@
 
 #ifdef TEST_BFLOAT
 #define FLOAT_EPSILON    ((FLOAT)(1) / (FLOAT)(1 << 7))
-#elif TEST_FLOAT16
+#elif defined(TEST_FLOAT16)
 #define FLOAT_EPSILON    ((FLOAT)(1) / (FLOAT)(1 << 10))
 #elif defined(TEST_FLOAT)
 #define FLOAT_EPSILON    (FLOAT)(FLT_EPSILON)
@@ -219,7 +219,7 @@ typedef union {
 } data;
 
 typedef union {
-  _Float16 f;
+  bfloat16 f;
   uint16_t s;
 } data2;
 
@@ -414,8 +414,7 @@ float32tobf16(float inp)
 {
   data inp1;
   inp1.f = inp;
-//#ifndef TEST_FLOAT16
-#if 1
+#ifndef TEST_FLOAT16
   inp1.i += ((inp1.i >> 16) & 0x1) + 0x7fff;
 #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
   return inp1.q[0];
@@ -423,9 +422,11 @@ float32tobf16(float inp)
   return inp1.q[1];
 #endif
 #else
-  return ((inp1.i >> 16) & 0x8000) |
-          ((((inp1.i & 0x7f800000) - 0x38000000) >> 13) & 0x7c00) |
-          ((inp1.i >> 13) & 0x03ff);
+  data2 out;
+  out.s = ((inp1.i >> 16) & 0x8000) |
+    ((((inp1.i & 0x7f800000) - 0x38000000) >> 13) & 0x7c00) |
+    ((inp1.i >> 13) & 0x03ff);
+  return out.f;
 #endif
 }
 
@@ -473,7 +474,6 @@ FORCEINLINE void init_array2(BLASLONG i, int y, FLOAT *input_array0)
   input_array0[i] = x;
 #else
   input_array0[i] = bfloat16tof32(float32tobf16(x));
-//printf("%9.6f %9.6f\n", x, input_array0[i]);
 #endif
 }
 
