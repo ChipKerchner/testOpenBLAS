@@ -66,43 +66,6 @@ int FP3264GEMV_T_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, I
 }
 
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
-#if 0  // Temp
-int BF16GEMV_T_RVV(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *buffer)
-{
-#if 0
-  IFLOAT *ap, *x;
-  FLOAT *y;
-#endif
-  GEMV_N_beta(N, output, buffer, 1.0);
-#if 0
-  BLASLONG j = 0;
-#ifdef USE_BFGEMV_8_T_RVV
-  for (; j + 8 <= N; j += 8) {
-    init_T(lda, input_matrix, input_vector, output, j, &ap, &x, &y);
-    BF16GEMV_T_RVV_8(M, lda, ap, x, y, alpha);
-  }
-  if (N & 4) {
-#else
-  while (j + 4 <= N) {
-#endif
-    init_T(lda, input_matrix, input_vector, output, j, &ap, &x, &y);
-    j += 4;
-    BF16GEMV_T_RVV_4(M, lda, ap, x, y, alpha);
-  }
-  if (N & 2) {
-    init_T(lda, input_matrix, input_vector, output, j, &ap, &x, &y);
-    j += 2;
-    BF16GEMV_T_RVV_2(M, lda, ap, x, y, alpha);
-  }
-  if (N & 1) {
-    init_T(lda, input_matrix, input_vector, output, j, &ap, &x, &y);
-    BF16GEMV_T_RVV_1(M, lda, ap, x, y, alpha);
-  }
-#endif
-  return 0;
-}
-#endif
-
 int BF16GEMV_N_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *buffer)
 {
   GEMV_N_beta(M, output, buffer, 1.0);
@@ -129,46 +92,6 @@ int FP3264GEMV_N_generic(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, I
   }
   return 0;
 }
-
-#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
-#if 0  // Temp
-int BF16GEMV_N_RVV(BLASLONG M, BLASLONG N, BLASLONG dummy1, FLOAT alpha, IFLOAT *input_matrix, BLASLONG lda, IFLOAT *input_vector, BLASLONG inc_x, FLOAT *output, BLASLONG inc_y, FLOAT *buffer)
-{
-#if 0
-  IFLOAT *ap[4], *xo;
-  FLOAT *y;
-#endif
-  GEMV_N_beta(M, output, buffer, 1.0);
-#if 0
-  BLASLONG j = 0;
-#ifdef USE_BFGEMV_8_N_RVV
-  BLASLONG lda4 = M * 4;
-  for (; j + 8 <= N; j += 8) {
-    init_N(lda, input_matrix, input_vector, output, j, ap, &xo, &y);
-    BF16GEMV_N_RVV_8(M, ap, xo, y, lda4, alpha);
-  }
-  if (N & 4) {
-#else
-  while (j + 4 <= N) {
-#endif
-    init_N(lda, input_matrix, input_vector, output, j, ap, &xo, &y);
-    j += 4;
-    BF16GEMV_N_RVV_4(M, ap, xo, y, alpha);
-  }
-  if (N & 2) {
-    init_N(lda, input_matrix, input_vector, output, j, ap, &xo, &y);
-    j += 2;
-    BF16GEMV_N_RVV_2(M, ap, xo, y, alpha);
-  }
-  if (N & 1) {
-    init_N(lda, input_matrix, input_vector, output, j, ap, &xo, &y);
-    BF16GEMV_N_RVV_1(M, ap, xo, y, alpha);
-  }
-#endif
-  return 0;
-}
-#endif
-#endif
 
 void GEMM_beta(BLASLONG M, BLASLONG N, FLOAT *output_vector, FLOAT *input_vector, FLOAT beta)
 {
