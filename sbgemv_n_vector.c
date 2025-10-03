@@ -49,15 +49,15 @@ int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASL
 {
     if (n < 0) return(0);
 
-    IFLOAT *a_ptr;
-    FLOAT *y_ptr, temp;
+    IFLOAT *a_ptr, temp;
+    FLOAT *y_ptr;
     BLASLONG i, j, vl;
     IFLOAT_V_T va;
     FLOAT_V_T vy;
 
     if (inc_y == 1) {
         for (j = 0; j < n; j++) {
-            temp = alpha * (float)(x[0]);
+            temp = (IFLOAT)(alpha * (FLOAT)(x[0]));
             y_ptr = y;
             a_ptr = a;
             for (i = m; i > 0; i -= vl) {
@@ -75,7 +75,7 @@ int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASL
     } else {
         BLASLONG stride_y = inc_y * sizeof(FLOAT);
         for (j = 0; j < n; j++) {
-            temp = alpha * (float)(x[0]);
+            temp = (IFLOAT)(alpha * (FLOAT)(x[0]));
             y_ptr = y;
             a_ptr = a;
             for (i = m; i > 0; i -= vl) {

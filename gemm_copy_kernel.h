@@ -225,10 +225,15 @@
 #else
 #define CNAME  BF16GEMV_N_RVV
 #include "sbgemv_n_vector.c"
+#undef VSETVL
+#undef FLOAT_V_T
+#undef IFLOAT_V_T
+#undef VLEV_FLOAT
+#undef VLSEV_FLOAT
 #undef CNAME
 
 #define CNAME  BF16GEMV_T_RVV
-#include "sbgemv_t.c"
+#include "sbgemv_t_vector.c"
 #endif
 #endif
 #undef CNAME
