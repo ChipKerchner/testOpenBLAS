@@ -224,7 +224,7 @@
 #include "gemv_t_vector.c"
 #else
 #define CNAME  BF16GEMV_N_RVV
-#include "sbgemv_n.c"
+#include "sbgemv_n_vector.c"
 #undef CNAME
 
 #define CNAME  BF16GEMV_T_RVV
