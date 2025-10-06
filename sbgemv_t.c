@@ -28,11 +28,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "common.h"
 #include "bf16_macros.h"
 
-#ifdef B0
-int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y, FLOAT *buffer)
-#else
-int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT *y, BLASLONG inc_y, FLOAT *buffer)
-#endif
+int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y)
 {
     BLASLONG i, j, ix, iy;
     IFLOAT *a_ptr;
@@ -50,7 +46,7 @@ int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASL
             temp += BF16TOF32(a_ptr[i]) * BF16TOF32(x[ix]);
             ix += inc_x;
         }
-        y[iy] += alpha * temp;
+        y[iy] = y[iy] * beta + alpha * temp;
         iy += inc_y;
         a_ptr += lda;
     }

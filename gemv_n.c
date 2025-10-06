@@ -1,5 +1,5 @@
 /***************************************************************************
-Copyright (c) 2013-2014, 2025 The OpenBLAS Project
+Copyright (c) 2016, The OpenBLAS Project
 All rights reserved.
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are
@@ -26,35 +26,36 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 *****************************************************************************/
 
 #include "common.h"
-#include "bf16_macros.h"
 
 int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y)
 {
-        BLASLONG i;
-        BLASLONG ix,iy;
-        BLASLONG j;
-        IFLOAT *a_ptr;
-        FLOAT temp;
+	BLASLONG i;
+	BLASLONG ix,iy;
+	BLASLONG j;
+	FLOAT *a_ptr;
+	FLOAT temp;
 
-        ix = iy = 0;
-        a_ptr = a;
+	ix = iy = 0;
+	a_ptr = a;
 
         for (j=0; j<m; j++)
         {
                 y[iy] *= beta;
                 iy += inc_y;
         }
-        for (j=0; j<n; j++)
-        {
-                temp = alpha * BF16TOF32(x[ix]);
-                iy = 0;
-                for (i=0; i<m; i++)
-                {
-                        y[iy] += temp * BF16TOF32(a_ptr[i]);
-                        iy += inc_y;
-                }
-                a_ptr += lda;
-                ix    += inc_x;
-        }
-        return(0);
+	for (j=0; j<n; j++)
+	{
+		temp = alpha * x[ix];
+		iy = 0;
+		for (i=0; i<m; i++)
+		{
+			y[iy] += temp * a_ptr[i];
+			iy += inc_y;
+		}
+		a_ptr += lda;
+		ix    += inc_x;
+	}
+	return(0);
 }
+
+

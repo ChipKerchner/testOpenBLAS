@@ -58,7 +58,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define xint_t long long
 #endif
 
-int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, FLOAT *a, BLASLONG lda, FLOAT *x, BLASLONG inc_x, FLOAT *y, BLASLONG inc_y, FLOAT *buffer)
+int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y)
 {
     BLASLONG i = 0, j = 0, k = 0;
     BLASLONG ix = 0, iy = 0;
@@ -91,8 +91,7 @@ int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, FLOAT *a, BLASLO
                 v_res = VFREDSUM_FLOAT(vr, v_res, gvl);
             }
             temp = (FLOAT)EXTRACT_FLOAT(v_res);
-            y[iy] += alpha * temp;
-
+            y[iy] = y[iy] * beta + alpha * temp;
 
             iy += inc_y;
             a_ptr += lda;
@@ -121,8 +120,7 @@ int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, FLOAT *a, BLASLO
                 v_res = VFREDSUM_FLOAT(vr, v_res, gvl);
                 }
                 temp = (FLOAT)EXTRACT_FLOAT(v_res);
-                y[iy] += alpha * temp;
-
+                y[iy] = y[iy] * beta + alpha * temp;
 
                 iy += inc_y;
                 a_ptr += lda;

@@ -214,6 +214,7 @@
 #if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
 #define CNAME  FP3264GEMV_N_RVV
 #include "gemv_n_vector.c"
+//#include "gemv_n.c"
 #undef VSETVL
 #undef FLOAT_V_T
 #undef VLEV_FLOAT
@@ -222,9 +223,11 @@
 
 #define CNAME  FP3264GEMV_T_RVV
 #include "gemv_t_vector.c"
+//#include "gemv_t.c"
 #else
 #define CNAME  BF16GEMV_N_RVV
 #include "sbgemv_n_vector.c"
+//#include "sbgemv_n.c"
 #undef VSETVL
 #undef FLOAT_V_T
 #undef IFLOAT_V_T
@@ -234,6 +237,7 @@
 
 #define CNAME  BF16GEMV_T_RVV
 #include "sbgemv_t_vector.c"
+//#include "sbgemv_t.c"
 #endif
 #endif
 #undef CNAME

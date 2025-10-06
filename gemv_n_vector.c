@@ -35,6 +35,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VSEV_FLOAT              RISCV_RVV(vse32_v_f32m8)
 #define VSSEV_FLOAT             RISCV_RVV(vsse32_v_f32m8)
 #define VFMACCVF_FLOAT          RISCV_RVV(vfmacc_vf_f32m8)
+#define VFMULVF_FLOAT           RISCV_RVV(vfmul_vf_f32m8)
 #else
 #define VSETVL(n)               RISCV_RVV(vsetvl_e64m8)(n)
 #define FLOAT_V_T               vfloat64m8_t
@@ -43,9 +44,10 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VSEV_FLOAT              RISCV_RVV(vse64_v_f64m8)
 #define VSSEV_FLOAT             RISCV_RVV(vsse64_v_f64m8)
 #define VFMACCVF_FLOAT          RISCV_RVV(vfmacc_vf_f64m8)
+#define VFMULVF_FLOAT           RISCV_RVV(vfmul_vf_f64m8)
 #endif
 
-int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, FLOAT *a, BLASLONG lda, FLOAT *x, BLASLONG inc_x, FLOAT *y, BLASLONG inc_y, FLOAT *buffer)
+int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *x, BLASLONG inc_x, FLOAT beta, FLOAT *y, BLASLONG inc_y)
 {
     if (n < 0) return(0);
 
@@ -53,7 +55,15 @@ int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, FLOAT *a, BLASLO
     BLASLONG i, j, vl;
     FLOAT_V_T va, vy;
 
+    y_ptr = y;
     if (inc_y == 1) {
+        for (i = m; i > 0; i -= vl) {
+            vl = VSETVL(i);
+            vy = VLEV_FLOAT(y_ptr, vl);
+            vy = VFMULVF_FLOAT(vy, beta, vl);
+            VSEV_FLOAT(y_ptr, vy, vl);
+            y_ptr += vl;
+        }
         for (j = 0; j < n; j++) {
             temp = alpha * x[0];
             y_ptr = y;
@@ -72,6 +82,13 @@ int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, FLOAT *a, BLASLO
         }
     } else {
         BLASLONG stride_y = inc_y * sizeof(FLOAT);
+        for (i = m; i > 0; i -= vl) {
+            vl = VSETVL(i);
+            vy = VLSEV_FLOAT(y_ptr, stride_y, vl);
+            vy = VFMULVF_FLOAT(vy, beta, vl);
+            VSSEV_FLOAT(y_ptr, stride_y, vy, vl);
+            y_ptr += vl * inc_y;
+	}
         for (j = 0; j < n; j++) {
             temp = alpha * x[0];
             y_ptr = y;
