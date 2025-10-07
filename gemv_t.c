@@ -47,7 +47,7 @@ int CNAME(BLASLONG m, BLASLONG n, BLASLONG dummy1, FLOAT alpha, IFLOAT *a, BLASL
 			temp += a_ptr[i] * x[ix];
 			ix    += inc_x;
 		}
-		y[iy] = y[iy] * beta + alpha * temp;
+		y[iy] += alpha * temp;
 		iy += inc_y;
 		a_ptr += lda;
 	}

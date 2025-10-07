@@ -549,7 +549,7 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0, IFLOAT *inp
 }
 
 void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, IFLOAT *input_vector, IFLOAT *input_vector1,
-          BLASLONG M, BLASLONG N, BLASLONG in, FLOAT *input, BLASLONG out)
+          BLASLONG M, BLASLONG N, BLASLONG in, FLOAT *input, BLASLONG out, BLASLONG inc)
 {
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line = j * M;
@@ -557,19 +557,19 @@ void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, IFLOAT *input_vector, IFL
       init_array(line + i, rand_value(), input_matrix, input_matrix2);
     }
   }
-  for (BLASLONG j = 0; j < in; j++) {
+  for (BLASLONG j = 0; j < in * inc; j += inc) {
     init_array(j, rand_value(), input_vector, input_vector1);
   }
-  for (BLASLONG j = 0; j < out; j++) {
+  for (BLASLONG j = 0; j < out * inc; j += inc) {
     init_array2(j, rand_value(), input);
   }
 }
 
-int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG size, BLASLONG size2, const char *str, int orient)
+int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG size, BLASLONG size2, const char *str, int orient, BLASLONG inc)
 {
   FLOAT maxOut = (FLOAT)0;
   BLASLONG i = 0;
-  for (BLASLONG j = 0; j < out; j++) {
+  for (BLASLONG j = 0; j < out * inc; j += inc) {
     FLOAT diff = fabs(output0[j] - output1[j]);
     if (diff > maxOut) {
       maxOut = diff;
@@ -620,7 +620,7 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG K
 #else
 int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG out, IFLOAT *input_matrix1,
            IFLOAT *input_vector1, FLOAT *output0, FLOAT *output1, FLOAT *output2, FLOAT alpha, FLOAT beta,
-           FLOAT *input)
+           FLOAT *input, BLASLONG inc)
 #endif
 {
   FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
@@ -628,7 +628,7 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
 #ifdef TEST_MATRIX
   if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2)) {
 #else
-  if (verifyOut(output0, output1, out, tol, M, N, TEST_TYPE, orient)) {
+  if (verifyOut(output0, output1, out, tol, M, N, TEST_TYPE, orient, inc)) {
 #endif
     return 1;
   }
@@ -866,8 +866,8 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     FLOAT *output_matrix0 = NULL, *output_matrix1 = NULL, *output_matrix2 = NULL;
 #else
-    IFLOAT input_vector0[in], input_vector1[in];
-    FLOAT output0[N0], output1[N0], output2[N0], input[N0];
+    IFLOAT input_vector0[in * inc], input_vector1[in * inc];
+    FLOAT output0[N0 * inc], output1[N0 * inc], output2[N0 * inc], input[N0 * inc];
 #endif
     IFLOAT *input_matrix0 = NULL, *input_matrix1 = NULL;
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)
@@ -928,9 +928,9 @@ int main(int argc, char **argv)
     init(input_matrix0, input_matrix1, output_matrix0, in, out, K);
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
 #else
-    init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, N0);
+    init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, N0, inc);
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
-    memcpy(output0, input, N0 * sizeof(FLOAT));
+    memcpy(output0, input, N0 * inc * sizeof(FLOAT));
 #endif
 #endif
 #ifdef TEST_MATRIX
@@ -982,7 +982,7 @@ int main(int argc, char **argv)
           test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
         }
 #else
-        memcpy(output1, input, N0 * sizeof(FLOAT));
+        memcpy(output1, input, N0 * inc * sizeof(FLOAT));
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
         test_ptr(in, out, alpha, input_matrix0, in, input_vector0, inc, beta, output1, inc);
 #else
@@ -1011,7 +1011,7 @@ int main(int argc, char **argv)
 #ifdef TEST_MATRIX
     if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
 #else
-    if (verify(test, orient, orient2, M0, N0, N0, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input)) {
+    if (verify(test, orient, orient2, M0, N0, N0, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input, inc)) {
 #endif
       return 1;
     }
