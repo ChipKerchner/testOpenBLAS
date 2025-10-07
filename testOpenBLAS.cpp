@@ -177,7 +177,11 @@
 
 #define NBMAX            4096
 
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 typedef int funcGEMV(BLASLONG, BLASLONG, FLOAT, IFLOAT *, BLASLONG, IFLOAT *, BLASLONG, FLOAT, FLOAT *, BLASLONG);
+#else
+typedef int funcGEMV(BLASLONG, BLASLONG, BLASLONG, FLOAT, IFLOAT *, BLASLONG, IFLOAT *, BLASLONG, FLOAT *, BLASLONG, FLOAT *);
+#endif
 typedef int funcGEMM(BLASLONG, BLASLONG, BLASLONG, FLOAT, IFLOAT *, IFLOAT *, FLOAT *, BLASLONG);
 typedef int funcPACK(BLASLONG , BLASLONG, IFLOAT *, BLASLONG, IFLOAT *);
 
@@ -925,12 +929,18 @@ int main(int argc, char **argv)
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
 #else
     init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, N0);
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
     memcpy(output0, input, N0 * sizeof(FLOAT));
+#endif
 #endif
 #ifdef TEST_MATRIX
     gen_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix0, in);
 #else
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
     gen_ptr(in, out, alpha, input_matrix0, in, input_vector0, inc, beta, output0, inc);
+#else
+    gen_ptr(in, out, K, alpha, input_matrix0, in, input_vector0, inc, output0, inc, input);
+#endif
 #endif
 
     int stop = (all) ? 1 : (int)iter;
@@ -973,7 +983,11 @@ int main(int argc, char **argv)
         }
 #else
         memcpy(output1, input, N0 * sizeof(FLOAT));
+#if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
         test_ptr(in, out, alpha, input_matrix0, in, input_vector0, inc, beta, output1, inc);
+#else
+        test_ptr(in, out, K, alpha, input_matrix0, in, input_vector0, inc, output1, inc, input);
+#endif
 #endif
       }
 #ifdef VERIFY_OPENBLAS

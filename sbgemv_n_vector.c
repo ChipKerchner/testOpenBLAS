@@ -33,6 +33,7 @@ USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #define VSEV_FLOAT              RISCV_RVV(vse32_v_f32m8)
 #define VSSEV_FLOAT             RISCV_RVV(vsse32_v_f32m8)
 #define VFMULVF_FLOAT           RISCV_RVV(vfmul_vf_f32m8)
+#define VFMVVF_FLOAT            RISCV_RVV(vfmv_v_f_f32m8)
 
 #define VSETVL(n)               RISCV_RVV(vsetvl_e16m4)(n)
 
@@ -58,12 +59,21 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *
 
     y_ptr = y;
     if (inc_y == 1) {
-        for (i = m; i > 0; i -= vl) {
-            vl = VSETVL(i);
-            vy = VLEV_FLOAT(y_ptr, vl);
-            vy = VFMULVF_FLOAT(vy, beta, vl);
-            VSEV_FLOAT(y_ptr, vy, vl);
-            y_ptr += vl;
+        if (beta == 0.0) {
+            for (i = m; i > 0; i -= vl) {
+                vl = VSETVL(i);
+                vy = VFMVVF_FLOAT(0.0, vl);
+                VSEV_FLOAT(y_ptr, vy, vl);
+                y_ptr += vl;
+            }
+        } else if (beta != 1.0) {
+            for (i = m; i > 0; i -= vl) {
+                vl = VSETVL(i);
+                vy = VLEV_FLOAT(y_ptr, vl);
+                vy = VFMULVF_FLOAT(vy, beta, vl);
+                VSEV_FLOAT(y_ptr, vy, vl);
+                y_ptr += vl;
+            }
         }
         for (j = 0; j < n; j++) {
             temp = (IFLOAT)(alpha * (FLOAT)(x[0]));
@@ -83,12 +93,21 @@ int CNAME(BLASLONG m, BLASLONG n, FLOAT alpha, IFLOAT *a, BLASLONG lda, IFLOAT *
         }
     } else {
         BLASLONG stride_y = inc_y * sizeof(FLOAT);
-        for (i = m; i > 0; i -= vl) {
-            vl = VSETVL(i);
-            vy = VLSEV_FLOAT(y_ptr, stride_y, vl);
-            vy = VFMULVF_FLOAT(vy, beta, vl);
-            VSSEV_FLOAT(y_ptr, stride_y, vy, vl);
-            y_ptr += vl * inc_y;
+        if (beta == 0.0) {
+            for (i = m; i > 0; i -= vl) {
+                vl = VSETVL(i);
+                vy = VFMVVF_FLOAT(0.0, vl);
+                VSSEV_FLOAT(y_ptr, stride_y, vy, vl);
+                y_ptr += vl * inc_y;
+            }
+        } else if (beta != 1.0) {
+            for (i = m; i > 0; i -= vl) {
+                vl = VSETVL(i);
+                vy = VLSEV_FLOAT(y_ptr, stride_y, vl);
+                vy = VFMULVF_FLOAT(vy, beta, vl);
+                VSSEV_FLOAT(y_ptr, stride_y, vy, vl);
+                y_ptr += vl * inc_y;
+            }
         }
         for (j = 0; j < n; j++) {
             temp = (IFLOAT)(alpha * (FLOAT)(x[0]));
