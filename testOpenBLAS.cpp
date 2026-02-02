@@ -47,6 +47,7 @@
 #endif
 
 #define VECTORIZE_PACK  // Use vectorize packing (if available)
+#define TEST_PACKING    // Include packing
 
 #ifdef VECTORIZE_PACK
 #ifndef TEST_DOUBLE
@@ -813,6 +814,7 @@ int main(int argc, char **argv)
   funcGEMM *test3_ptr = ((test == TEST_OPENBLAS) ? OLD_BF16_GEMM : NULL);
 #endif
 #ifdef TEST_MATRIX
+#ifdef TEST_PACKING
   funcPACK *packm_ptr, *packn_ptr;
 #if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)
   if (orient == orient2) {
@@ -830,6 +832,7 @@ int main(int argc, char **argv)
     packm_ptr = ((orient2 != TEST_NOTRANSPOSE) ? BF16_PACK_MN : BF16_PACK_MT);
     packn_ptr = ((orient2 != TEST_NOTRANSPOSE) ? BF16_PACK_NT : BF16_PACK_NN);
   }
+#endif
 #endif
 #endif
 
@@ -943,8 +946,12 @@ int main(int argc, char **argv)
 #endif
 #endif
 
-    int stop = (all) ? 1 : (int)iter;
-    timer_t start = get_rvv_timer();
+    timer_t start;
+    {
+    bool warmup = true;
+again:
+    int stop = (all || warmup) ? 1 : (int)iter;
+    start = get_rvv_timer();
     for (int i = 0; i < stop; i++) {
 
       if (test <= TEST_RVV) {
@@ -969,6 +976,7 @@ int main(int argc, char **argv)
           } else
 #endif
           {
+#ifdef TEST_PACKING
             if (orient == TEST_TRANSPOSE) {
               packm_ptr(K, in, input_matrix0, in, input_matrix01);
               packn_ptr(K, out, input_matrix1, out, input_matrix11);
@@ -976,6 +984,12 @@ int main(int argc, char **argv)
               packm_ptr(K, in, input_matrix0, K, input_matrix01);
               packn_ptr(K, out, input_matrix1, K, input_matrix11);
             }
+#else
+            memset(input_matrix0, 0, in * K * sizeof(IFLOAT));
+            memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
+            memset(input_matrix1, 0, K * out * sizeof(IFLOAT));
+            memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
+#endif
             test_ptr(in, out, K, alpha, input_matrix01, input_matrix11, output_matrix1, in);
           }
         } else {
@@ -1003,11 +1017,17 @@ int main(int argc, char **argv)
       }
 #endif
     }
+    if (warmup) {
+      warmup = false;
+      goto again;
+    }
+    }
     timer_t end = get_rvv_timer();
     if (!all) {
       printf("Total time = %16ld\n\n", end - start);
     }
 
+#ifdef TEST_PACKING
 #ifdef TEST_MATRIX
     if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
 #else
@@ -1022,6 +1042,7 @@ int main(int argc, char **argv)
         return 1;
       }
     }
+#endif
 #endif
 
     free(input_matrix0);
