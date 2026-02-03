@@ -48,6 +48,7 @@
 
 #define VECTORIZE_PACK  // Use vectorize packing (if available)
 #define TEST_PACKING    // Include packing
+#define TEST_INITIALIZE // Include initializing
 
 #ifdef VECTORIZE_PACK
 #ifndef TEST_DOUBLE
@@ -55,6 +56,8 @@
 #endif
 #define VECTORIZE_PACK_T     // Vectorize t_copy
 #endif
+
+//#define FASTER_GENERIC_C     // Pack data and use cache friend algorithm
 
 #ifdef RVV_256
 #define RVV_VLENB        32
@@ -496,6 +499,7 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
 void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
           BLASLONG M, BLASLONG N, BLASLONG K)
 {
+#ifdef TEST_INITIALIZE
   for (BLASLONG j = 0; j < M; j++) {
     BLASLONG line = j * K;
     for (BLASLONG i = 0; i < K; i++) {
@@ -514,6 +518,11 @@ void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
       init_array2(line + i, rand_value(), output_matrix);
     }
   }
+#else
+  memset(input_matrix, 0, M * K * sizeof(IFLOAT));
+  memset(input_matrix2, 0, N * K * sizeof(IFLOAT));
+  memset(output_matrix, 0, M * N * sizeof(FLOAT));
+#endif
 }
 
 int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N, BLASLONG K, const char *str, int orient, int orient2)
@@ -896,7 +905,11 @@ int main(int argc, char **argv)
       return 1;
     }
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)
+#ifdef FASTER_GENERIC_C
+    if (test >= TEST_GENERIC) {
+#else
     if (test >= TEST_RVV) {
+#endif
       input_matrix01 = (IFLOAT *)malloc(in * K * sizeof(IFLOAT));
       if (input_matrix01 == NULL) {
         fprintf(stderr, "Bad malloc\n");
@@ -936,6 +949,7 @@ int main(int argc, char **argv)
     memcpy(output0, input, N0 * inc * sizeof(FLOAT));
 #endif
 #endif
+#ifdef TEST_INITIALIZE
 #ifdef TEST_MATRIX
     gen_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix0, in);
 #else
@@ -945,10 +959,22 @@ int main(int argc, char **argv)
     gen_ptr(in, out, K, alpha, input_matrix0, in, input_vector0, inc, output0, inc, input);
 #endif
 #endif
+#endif
 
     timer_t start;
     {
+#ifdef TEST_INITIALIZE
     bool warmup = true;
+#else
+    bool warmup = false;
+#ifdef TEST_MATRIX
+    memset(output_matrix1, 0, M0 * N0 * sizeof(FLOAT));
+    memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
+    memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
+#else
+    memset(output1, 0, N0 * inc * sizeof(FLOAT));
+#endif
+#endif
 again:
     int stop = (all || warmup) ? 1 : (int)iter;
     start = get_rvv_timer();
@@ -957,7 +983,11 @@ again:
       if (test <= TEST_RVV) {
 #ifdef TEST_MATRIX
         memcpy(output_matrix1, output_matrix2, M0 * N0 * sizeof(FLOAT));
+#ifdef FASTER_GENERIC_C
+	if (test >= TEST_GENERIC) {
+#else
         if (test == TEST_RVV) {
+#endif
 #ifdef TEST_SMALL_MATRIX
           if ((GEMM_SMALL_M_PERMIT(orient, orient2, in, out, K, alpha, beta) != 0)) {
 #ifdef B0
@@ -985,10 +1015,10 @@ again:
               packn_ptr(K, out, input_matrix1, K, input_matrix11);
             }
 #else
-            memset(input_matrix0, 0, in * K * sizeof(IFLOAT));
-            memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
-            memset(input_matrix1, 0, K * out * sizeof(IFLOAT));
-            memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
+#ifdef TEST_INITIALIZE
+            memcpy(input_matrix01, input_matrix0, in * K * sizeof(IFLOAT));
+            memcpy(input_matrix11, input_matrix1, K * out * sizeof(IFLOAT));
+#endif
 #endif
             test_ptr(in, out, K, alpha, input_matrix01, input_matrix11, output_matrix1, in);
           }
@@ -996,7 +1026,9 @@ again:
           test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
         }
 #else
+#ifdef TEST_INITIALIZE
         memcpy(output1, input, N0 * inc * sizeof(FLOAT));
+#endif
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
         test_ptr(in, out, alpha, input_matrix0, in, input_vector0, inc, beta, output1, inc);
 #else
@@ -1048,7 +1080,11 @@ again:
     free(input_matrix0);
     free(input_matrix1);
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)
+#ifdef FASTER_GENERIC_C
+    if (test >= TEST_GENERIC) {
+#else
     if (test >= TEST_RVV) {
+#endif
       free(input_matrix01);
       free(input_matrix11);
     }
