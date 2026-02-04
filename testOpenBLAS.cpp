@@ -11,6 +11,24 @@
 #define RVV_128       // Test 128-bit RVV
 #endif
 
+#ifdef RVV_256
+#define TEST_VLEN        "VLEN256"
+#else
+#define TEST_VLEN        "VLEN128"
+#endif
+
+#ifndef EIGEN_RISCV64_DEFAULT_LMUL
+#define EIGEN_RISCV64_DEFAULT_LMUL  1
+#endif
+
+#if EIGEN_RISCV64_DEFAULT_LMUL == 1
+#define TEST_LMUL        "LMUL1"
+#elif EIGEN_RISCV64_DEFAULT_LMUL == 2
+#define TEST_LMUL        "LMUL2"
+#elif EIGEN_RISCV64_DEFAULT_LMUL == 4
+#define TEST_LMUL        "LMUL4"
+#endif
+
 #define TEST_MATRIX   // Test GEMM
 #ifndef TEST_MATRIX
 #define TEST_VECTOR   // Test GEMV
@@ -18,8 +36,8 @@
 
 #define TEST_FLOAT    // Test FP32
 #ifndef TEST_FLOAT
-//#define TEST_DOUBLE   // Test FP64
-//#define DOUBLE
+#define TEST_DOUBLE   // Test FP64
+#define DOUBLE
 #ifndef TEST_DOUBLE
 //#define TEST_BFLOAT   // Test BF16
 //#define TEST_FLOAT16  // Test FP16
@@ -47,8 +65,8 @@
 #endif
 
 #define VECTORIZE_PACK  // Use vectorize packing (if available)
-#define TEST_PACKING    // Include packing
-#define TEST_INITIALIZE // Include initializing
+//#define TEST_PACKING    // Include packing
+//#define TEST_INITIALIZE // Include initializing
 
 #ifdef VECTORIZE_PACK
 #ifndef TEST_DOUBLE
@@ -804,7 +822,7 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  printf("Testing %s %s %s ", COMP_STR, TEST_STR, TEST_TYPE);
+  printf("Testing %s %s %s %s %s ", COMP_STR, TEST_STR, TEST_LMUL, TEST_VLEN, TEST_TYPE);
   printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld\n\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc);
 
   rand_seed((unsigned int)(get_rvv_timer()));
