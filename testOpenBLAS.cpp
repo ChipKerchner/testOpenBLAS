@@ -37,16 +37,16 @@
 #define TEST_FLOAT    // Test FP32
 #ifndef TEST_FLOAT
 #define TEST_DOUBLE   // Test FP64
-#define DOUBLE
 #ifndef TEST_DOUBLE
 //#define TEST_BFLOAT   // Test BF16
 //#define TEST_FLOAT16  // Test FP16
-
 #ifdef TEST_BFLOAT
 #define BFLOAT16
 #elif defined(TEST_FLOAT16)
 #define HFLOAT16
 #endif
+#else
+#define DOUBLE
 #endif
 #endif
 
@@ -65,8 +65,8 @@
 #endif
 
 #define VECTORIZE_PACK  // Use vectorize packing (if available)
-//#define TEST_PACKING    // Include packing
-//#define TEST_INITIALIZE // Include initializing
+#define TEST_PACKING    // Include packing
+#define TEST_INITIALIZE // Include initializing
 
 #ifdef VECTORIZE_PACK
 #ifndef TEST_DOUBLE
@@ -989,8 +989,6 @@ int main(int argc, char **argv)
     memset(output_matrix1, 0, M0 * N0 * sizeof(FLOAT));
     memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
     memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
-#else
-    memset(output1, 0, N0 * inc * sizeof(FLOAT));
 #endif
 #endif
 again:
@@ -1077,7 +1075,7 @@ again:
       printf("Total time = %16ld\n\n", end - start);
     }
 
-#ifdef TEST_PACKING
+#if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
 #ifdef TEST_MATRIX
     if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
 #else
@@ -1114,10 +1112,12 @@ again:
 #endif
   }
 
+#if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
   if (all) {
     FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
     printf("All %s tests successful from %4d to %4ld (%4ld %8.6f)\n\n", (all == 2) ? "rectangular" : "square", 1, M, N, tol);
   }
+#endif
 
   return 0;
 }
