@@ -39,11 +39,14 @@
 #define TEST_DOUBLE   // Test FP64
 #ifndef TEST_DOUBLE
 //#define TEST_BFLOAT   // Test BF16
-//#define TEST_FLOAT16  // Test FP16
+#define TEST_FLOAT16  // Test FP16
 #ifdef TEST_BFLOAT
 #define BFLOAT16
 #elif defined(TEST_FLOAT16)
 #define HFLOAT16
+#ifdef RVV_256
+#define FP16_NARROW   // Accumulate in FP16 and widen at end
+#endif
 #endif
 #else
 #define DOUBLE
@@ -146,7 +149,11 @@
 #ifndef TEST_FLOAT16
 #define TEST_STR         "BF16"
 #else
+#ifdef FP16_NARROW
+#define TEST_STR         "FP16_N"
+#else
 #define TEST_STR         "FP16"
+#endif
 #endif
 #define IFLOAT           bfloat16
 #define GEMM_UNROLL_N    8
@@ -185,7 +192,11 @@
 #ifdef TEST_BFLOAT
 #define FLOAT_EPSILON    ((FLOAT)(1) / (FLOAT)(1 << 7))
 #elif defined(TEST_FLOAT16)
+#ifdef FP16_NARROW
+#define FLOAT_EPSILON    ((FLOAT)(4) / (FLOAT)(1 << 10))
+#else
 #define FLOAT_EPSILON    ((FLOAT)(1) / (FLOAT)(1 << 10))
+#endif
 #elif defined(TEST_FLOAT)
 #define FLOAT_EPSILON    (FLOAT)(FLT_EPSILON)
 #else

@@ -192,12 +192,24 @@ int BF16GEMM_NN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT*
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line2 = j * K;
     for (BLASLONG i = 0; i < M; i++) {
+#ifdef FP16_NARROW
+      IFLOAT t = 0;
+#else
       FLOAT t = 0;
+#endif
       BLASLONG line = i * K;
       for (BLASLONG k = 0; k < K; k++) {
+#ifdef FP16_NARROW
+        t += A[line + k] * B[line2 + k];
+#else
         t += bfloat16tof32(A[line + k]) * bfloat16tof32(B[line2 + k]);
+#endif
       }
+#ifdef FP16_NARROW
+      C[i] += (bfloat16tof32(t) * alpha);
+#else
       C[i] += (t * alpha);
+#endif
     }
     C += ldc;
   }
@@ -208,12 +220,24 @@ int BF16GEMM_NT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT*
 {
   for (BLASLONG j = 0; j < N; j++) {
     for (BLASLONG i = 0; i < M; i++) {
+#ifdef FP16_NARROW
+      IFLOAT t = 0;
+#else
       FLOAT t = 0;
+#endif
       BLASLONG line = i * K;
       for (BLASLONG k = 0; k < K; k++) {
+#ifdef FP16_NARROW
+        t += A[line + k] * B[k * N + j];
+#else
         t += bfloat16tof32(A[line + k]) * bfloat16tof32(B[k * N + j]);
+#endif
       }
+#ifdef FP16_NARROW
+      C[i] += (bfloat16tof32(t) * alpha);
+#else
       C[i] += (t * alpha);
+#endif
     }
     C += ldc;
   }
@@ -225,11 +249,23 @@ int BF16GEMM_TN_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT*
   for (BLASLONG j = 0; j < N; j++) {
     BLASLONG line2 = j * K;
     for (BLASLONG i = 0; i < M; i++) {
+#ifdef FP16_NARROW
+      IFLOAT t = 0;
+#else
       FLOAT t = 0;
+#endif
       for (BLASLONG k = 0; k < K; k++) {
+#ifdef FP16_NARROW
+        t += A[k * M + i] * B[line2 + k];
+#else
         t += bfloat16tof32(A[k * M + i]) * bfloat16tof32(B[line2 + k]);
+#endif
       }
+#ifdef FP16_NARROW
+      C[i] += (bfloat16tof32(t) * alpha);
+#else
       C[i] += (t * alpha);
+#endif
     }
     C += ldc;
   }
@@ -240,11 +276,23 @@ int BF16GEMM_TT_generic(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT*
 {
   for (BLASLONG j = 0; j < N; j++) {
     for (BLASLONG i = 0; i < M; i++) {
+#ifdef FP16_NARROW
+      IFLOAT t = 0;
+#else
       FLOAT t = 0;
+#endif
       for (BLASLONG k = 0; k < K; k++) {
+#ifdef FP16_NARROW
+        t += A[k * M + i] * B[k * N + j];
+#else
         t += bfloat16tof32(A[k * M + i]) * bfloat16tof32(B[k * N + j]);
+#endif
       }
+#ifdef FP16_NARROW
+      C[i] += (bfloat16tof32(t) * alpha);
+#else
       C[i] += (t * alpha);
+#endif
     }
     C += ldc;
   }
