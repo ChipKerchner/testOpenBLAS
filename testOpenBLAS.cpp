@@ -44,9 +44,7 @@
 #define BFLOAT16
 #elif defined(TEST_FLOAT16)
 #define HFLOAT16
-#ifdef RVV_256
 #define FP16_NARROW   // Accumulate in FP16 and widen at end
-#endif
 #endif
 #else
 #define DOUBLE
