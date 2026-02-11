@@ -42,6 +42,7 @@
 #define TEST_FLOAT16  // Test FP16
 #ifdef TEST_BFLOAT
 #define BFLOAT16
+#define BF16_WIDEN_ONE // Widen arrays first and use FP32
 #elif defined(TEST_FLOAT16)
 #define HFLOAT16
 #define FP16_NARROW   // Accumulate in FP16 and widen at end
@@ -1008,8 +1009,14 @@ int main(int argc, char **argv)
     bool warmup = false;
 #ifdef TEST_MATRIX
     memset(output_matrix1, 0, M0 * N0 * sizeof(FLOAT));
-    memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
-    memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
+#ifdef FASTER_GENERIC_C
+    if (test >= TEST_GENERIC) {
+#else
+    if (test >= TEST_RVV) {
+#endif
+      memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
+      memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
+    }
 #endif
 #endif
 again:
