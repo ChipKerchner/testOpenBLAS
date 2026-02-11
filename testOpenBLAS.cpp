@@ -34,9 +34,9 @@
 #define TEST_VECTOR   // Test GEMV
 #endif
 
-//#define TEST_FLOAT    // Test FP32
+#define TEST_FLOAT    // Test FP32
 #ifndef TEST_FLOAT
-//#define TEST_DOUBLE   // Test FP64
+#define TEST_DOUBLE   // Test FP64
 #ifndef TEST_DOUBLE
 //#define TEST_BFLOAT   // Test BF16
 #define TEST_FLOAT16  // Test FP16
@@ -51,11 +51,14 @@
 #endif
 #endif
 
+#define TEST_PACKING    // Include packing
+#define TEST_INITIALIZE // Include initializing
+
 #ifdef TEST_VECTOR
 //#define VERIFY_MATRIX        // Verfiy GEMV versus GEMM
 #endif
 
-#ifdef TEST_MATRIX
+#if defined(TEST_MATRIX) && defined(TEST_PACKING) && defined(TEST_INITIALIZE)
 #if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)    // Temp
 #define TEST_SMALL_MATRIX    // Use small matrix (no packing)
 #endif
@@ -66,8 +69,6 @@
 #endif
 
 #define VECTORIZE_PACK  // Use vectorize packing (if available)
-#define TEST_PACKING    // Include packing
-#define TEST_INITIALIZE // Include initializing
 
 #ifdef VECTORIZE_PACK
 #ifndef TEST_DOUBLE
@@ -76,7 +77,7 @@
 #define VECTORIZE_PACK_T     // Vectorize t_copy
 #endif
 
-//#define FASTER_GENERIC_C     // Pack data and use cache friend algorithm
+//#define FASTER_GENERIC_C     // Pack data and use cache friendly algorithm
 
 #ifdef RVV_256
 #define RVV_VLENB        32
