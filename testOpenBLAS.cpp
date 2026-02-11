@@ -837,7 +837,14 @@ int main(int argc, char **argv)
   printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld\n\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc);
 
 #ifdef TEST_SET_SEED
-  rand_seed((unsigned int)(get_rvv_timer()));
+  const char *openblas_str = getenv("OPENBLAS_SEED");
+  unsigned int openblas_seed;
+  if (openblas_str) {
+    openblas_seed = atoi(openblas_str);
+  } else {
+    openblas_seed = (unsigned int)(get_rvv_timer());
+  }
+  rand_seed(openblas_seed);
 #endif
 
   func *gen_ptr = func_ptr(TEST_GENERIC, orient, orient2);
