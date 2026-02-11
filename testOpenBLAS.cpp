@@ -38,8 +38,8 @@
 #ifndef TEST_FLOAT
 #define TEST_DOUBLE   // Test FP64
 #ifndef TEST_DOUBLE
-//#define TEST_BFLOAT   // Test BF16
-#define TEST_FLOAT16  // Test FP16
+#define TEST_BFLOAT   // Test BF16
+//#define TEST_FLOAT16  // Test FP16
 #ifdef TEST_BFLOAT
 #define BFLOAT16
 #define BF16_WIDEN_ONE // Widen arrays first and use FP32
@@ -70,6 +70,7 @@
 #endif
 
 #define VECTORIZE_PACK  // Use vectorize packing (if available)
+#define VECTORIZE_MEMSET // Since there is no vectorized memset yet
 
 #ifdef VECTORIZE_PACK
 #ifndef TEST_DOUBLE
@@ -527,6 +528,75 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
 #endif
 }
 
+#ifdef VECTORIZE_MEMSET
+#define SET_DATA  uint32_t
+#define SET_SIZE  sizeof(SET_DATA)
+#define SET_VEC   __riscv_vse32_v_u32m8
+#define SET_MOVE  __riscv_vmv_v_x_u32m8
+#define SET_Z     vuint32m8_t
+
+#ifdef RVV_256
+#define VECTOR_BYTES (32 / SET_SIZE)
+#else
+#define VECTOR_BYTES (16 / SET_SIZE)
+#endif
+
+FORCEINLINE void memset_vector(void *input, int c, BLASLONG size)
+{
+  if (size) {
+    const BLASLONG gvl = VECTOR_BYTES;
+
+    SET_DATA *input2 = (SET_DATA *)(input);
+    unsigned char c2 = (unsigned char)(c);
+
+    if (size >= gvl) {
+      SET_Z z = SET_MOVE(c2, gvl);
+      while (size >= (gvl * 16 * SET_SIZE)) {
+         SET_VEC(input2 + (0 * gvl), z, gvl);
+         SET_VEC(input2 + (1 * gvl), z, gvl);
+         SET_VEC(input2 + (2 * gvl), z, gvl);
+         SET_VEC(input2 + (3 * gvl), z, gvl);
+         SET_VEC(input2 + (4 * gvl), z, gvl);
+         SET_VEC(input2 + (5 * gvl), z, gvl);
+         SET_VEC(input2 + (6 * gvl), z, gvl);
+         SET_VEC(input2 + (7 * gvl), z, gvl);
+         SET_VEC(input2 + (8 * gvl), z, gvl);
+         SET_VEC(input2 + (9 * gvl), z, gvl);
+         SET_VEC(input2 + (10 * gvl), z, gvl);
+         SET_VEC(input2 + (11 * gvl), z, gvl);
+         SET_VEC(input2 + (12 * gvl), z, gvl);
+         SET_VEC(input2 + (13 * gvl), z, gvl);
+         SET_VEC(input2 + (14 * gvl), z, gvl);
+         SET_VEC(input2 + (15 * gvl), z, gvl);
+         input2 += 16 * gvl;
+         size -= 16 * (gvl * SET_SIZE);
+      }
+      while (size >= (gvl * 4 * SET_SIZE)) {
+         SET_VEC(input2 + (0 * gvl), z, gvl);
+         SET_VEC(input2 + (1 * gvl), z, gvl);
+         SET_VEC(input2 + (2 * gvl), z, gvl);
+         SET_VEC(input2 + (3 * gvl), z, gvl);
+	 input2 += 4 * gvl;
+         size -= 4 * (gvl * SET_SIZE);
+      }
+      if (size >= (gvl * SET_SIZE)) {
+         SET_VEC(input2 + (0 * gvl), z, gvl);
+         input2 += gvl;
+         size -= (gvl * SET_SIZE);
+      }
+    }
+    if (size) {
+      uint8_t *input3 = (uint8_t *)(input2);
+      do {
+        *input3++ = c2;
+      } while (--size);
+    }
+  }
+}
+#else
+#define memset_vector memset
+#endif
+
 void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
           BLASLONG M, BLASLONG N, BLASLONG K)
 {
@@ -550,9 +620,8 @@ void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
     }
   }
 #else
-  memset(input_matrix, 0, M * K * sizeof(IFLOAT));
-  memset(input_matrix2, 0, N * K * sizeof(IFLOAT));
-  memset(output_matrix, 0, M * N * sizeof(FLOAT));
+  memset_vector(input_matrix, 0, M * K * sizeof(IFLOAT));
+  memset_vector(output_matrix, 0, M * N * sizeof(FLOAT));
 #endif
 }
 
@@ -836,6 +905,14 @@ int main(int argc, char **argv)
   }
 
   printf("Testing %s %s %s %s %s ", COMP_STR, TEST_STR, TEST_LMUL, TEST_VLEN, TEST_TYPE);
+#ifdef TEST_MATRIX
+#ifndef TEST_PACKING
+  printf("NO_PACK ");
+#endif
+#endif
+#ifndef TEST_INITIALIZE
+  printf("NO_INIT ");
+#endif
   printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld\n\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc);
 
 #ifdef TEST_SET_SEED
@@ -948,7 +1025,7 @@ int main(int argc, char **argv)
 #ifdef FASTER_GENERIC_C
     if (test >= TEST_GENERIC) {
 #else
-    if (test >= TEST_RVV) {
+    if (test == TEST_RVV) {
 #endif
       input_matrix01 = (IFLOAT *)malloc(in * K * sizeof(IFLOAT));
       if (input_matrix01 == NULL) {
@@ -1008,14 +1085,14 @@ int main(int argc, char **argv)
 #else
     bool warmup = false;
 #ifdef TEST_MATRIX
-    memset(output_matrix1, 0, M0 * N0 * sizeof(FLOAT));
+    memset_vector(output_matrix1, 0, M0 * N0 * sizeof(FLOAT));
 #ifdef FASTER_GENERIC_C
     if (test >= TEST_GENERIC) {
 #else
-    if (test >= TEST_RVV) {
+    if (test == TEST_RVV) {
 #endif
-      memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
-      memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
+      memset_vector(input_matrix01, 0, in * K * sizeof(IFLOAT));
+      memset_vector(input_matrix11, 0, K * out * sizeof(IFLOAT));
     }
 #endif
 #endif
@@ -1026,7 +1103,11 @@ again:
 
       if (test <= TEST_RVV) {
 #ifdef TEST_MATRIX
+#ifdef TEST_INITIALIZE
         memcpy(output_matrix1, output_matrix2, M0 * N0 * sizeof(FLOAT));
+#else
+        memset_vector(output_matrix1, 0, M0 * N0 * sizeof(FLOAT));
+#endif
 #ifdef FASTER_GENERIC_C
 	if (test >= TEST_GENERIC) {
 #else
@@ -1127,7 +1208,7 @@ again:
 #ifdef FASTER_GENERIC_C
     if (test >= TEST_GENERIC) {
 #else
-    if (test >= TEST_RVV) {
+    if (test == TEST_RVV) {
 #endif
       free(input_matrix01);
       free(input_matrix11);
