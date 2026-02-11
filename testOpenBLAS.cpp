@@ -34,9 +34,9 @@
 #define TEST_VECTOR   // Test GEMV
 #endif
 
-#define TEST_FLOAT    // Test FP32
+//#define TEST_FLOAT    // Test FP32
 #ifndef TEST_FLOAT
-#define TEST_DOUBLE   // Test FP64
+//#define TEST_DOUBLE   // Test FP64
 #ifndef TEST_DOUBLE
 //#define TEST_BFLOAT   // Test BF16
 #define TEST_FLOAT16  // Test FP16
@@ -118,6 +118,8 @@
 #define TEST_ALPHA       2.0
 
 #define TEST_INC         1
+
+#define TEST_SET_SEED    // Set random number generator seed to time
 
 #ifndef TEST_FLOAT16
 #define bfloat16         __bf16
@@ -834,7 +836,9 @@ int main(int argc, char **argv)
   printf("Testing %s %s %s %s %s ", COMP_STR, TEST_STR, TEST_LMUL, TEST_VLEN, TEST_TYPE);
   printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld\n\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc);
 
+#ifdef TEST_SET_SEED
   rand_seed((unsigned int)(get_rvv_timer()));
+#endif
 
   func *gen_ptr = func_ptr(TEST_GENERIC, orient, orient2);
   func *test_ptr = func_ptr(test, orient, orient2);
