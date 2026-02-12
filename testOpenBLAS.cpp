@@ -38,12 +38,12 @@
 #ifndef TEST_FLOAT
 #define TEST_DOUBLE   // Test FP64
 #ifndef TEST_DOUBLE
-#define TEST_BFLOAT   // Test BF16
-//#define TEST_FLOAT16  // Test FP16
+//#define TEST_BFLOAT   // Test BF16
 #ifdef TEST_BFLOAT
 #define BFLOAT16
 #define BF16_WIDEN_ONE // Widen arrays first and use FP32
-#elif defined(TEST_FLOAT16)
+#else
+#define TEST_FLOAT16  // Test FP16
 #define HFLOAT16
 #define FP16_NARROW   // Accumulate in FP16 and widen at end
 #endif
@@ -214,6 +214,22 @@
 #else
 #define TRANS_EPSILON    4 * 8
 #endif
+
+#ifdef TEST_DOUBLE
+#ifdef RVV_256
+#define SET_N            8
+#else
+#define SET_N            4
+#endif
+#else
+#ifdef RVV_256
+#define SET_N            16
+#else
+#define SET_N            8
+#endif
+#endif
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 #define NBMAX            4096
 
@@ -533,15 +549,26 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
 }
 
 #ifdef VECTORIZE_MEMSET
+#if defined(TEST_FLOAT) || defined(TEST_DOUBLE)
 #define SET_DATA  uint32_t
-#define SET_SIZE  sizeof(SET_DATA)
 #define SET_VEC   __riscv_vse32_v_u32m8
 #define SET_MOVE  __riscv_vmv_v_x_u32m8
 #define SET_Z     vuint32m8_t
+#else
+#define SET_DATA  uint16_t
+#define SET_VEC   __riscv_vse16_v_u16m8
+#define SET_MOVE  __riscv_vmv_v_x_u16m8
+#define SET_Z     vuint16m8_t
+#endif
+#define SET_SIZE  sizeof(SET_DATA)
 
 #define SET_DATA8 uint8_t
 #define SET_VEC8  __riscv_vse8_v_u8m8
+#if defined(TEST_FLOAT) || defined(TEST_DOUBLE)
 #define SET_MOVE8 __riscv_vreinterpret_v_u32m8_u8m8
+#else
+#define SET_MOVE8 __riscv_vreinterpret_v_u16m8_u8m8
+#endif
 #define SET_Z8    vuint8m8_t
 
 #ifdef RVV_256
@@ -664,7 +691,7 @@ void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
   }
 #else
   memset(input_matrix, 0, M * K * sizeof(IFLOAT));
-  memset(input_matrix2, 0, N * K * sizeof(FLOAT));
+  memset(input_matrix2, 0, N * K * sizeof(IFLOAT));
 #endif
 }
 
@@ -1146,7 +1173,7 @@ again:
 #ifdef TEST_INITIALIZE
         memcpy(output_matrix1, output_matrix2, M0 * N0 * sizeof(FLOAT));
 #else
-        memset_zero(output_matrix1, M0 * N0 * sizeof(FLOAT), false);
+        memset_zero(output_matrix1, MIN(N0, SET_N) * sizeof(FLOAT), false);
 #endif
 #ifdef FASTER_GENERIC_C
 	if (test >= TEST_GENERIC) {
