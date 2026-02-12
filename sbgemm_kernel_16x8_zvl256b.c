@@ -23,7 +23,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
         BLASLONG gvl = __riscv_vsetvl_e16m1(16);
 #ifdef BF16_WIDEN_ONE
         BLASLONG bi2;
-        if (B_CONV) {
+        {
             BLASLONG bi3 = 0;
             BLASLONG gvl2;
             bi2 = K * 8;
@@ -458,7 +458,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
 
 #ifdef BF16_WIDEN_ONE
         BLASLONG bi2;
-        if (B_CONV) {
+        {
             BLASLONG bi3 = 0;
             BLASLONG gvl2;
             bi2 = K * 4;
