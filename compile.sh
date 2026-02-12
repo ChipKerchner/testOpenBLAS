@@ -1,11 +1,11 @@
 export USE_GCC=0
 export USE_ASM=0
 export USE_DEBUG=0
-export USE_STATIC=0
+export USE_STATIC=1
 
 export USE_256=1
 export USE_FP16=1
-export USE_BF16=0
+export USE_BF16=1
 export USE_ASCALON=0
 
 export TEST_NAME="testOpenBLAS"
@@ -39,7 +39,7 @@ if [[ $USE_FP16 -eq 1 ]]; then
 export ARCH_FLAG="${ARCH_FLAG}_zvfh_zfh"
 fi
 
-if [[ $USE_BF16 -eq 1 && $USE_GCC -eq 1 ]]; then
+if [[ $USE_BF16 -eq 1 ]]; then
 export ARCH_FLAG="${ARCH_FLAG}_zvfbfwma"
 fi
 
