@@ -11,22 +11,14 @@
 #define RVV_128       // Test 128-bit RVV
 #endif
 
+#if (defined(RVV_256) && !defined(USE_256)) || (!defined(RVV_256) && defined(USE_256))
+#warning "Compiler size mismatch"
+#endif
+
 #ifdef RVV_256
 #define TEST_VLEN        "VLEN256"
 #else
 #define TEST_VLEN        "VLEN128"
-#endif
-
-#ifndef EIGEN_RISCV64_DEFAULT_LMUL
-#define EIGEN_RISCV64_DEFAULT_LMUL  1
-#endif
-
-#if EIGEN_RISCV64_DEFAULT_LMUL == 1
-#define TEST_LMUL        "LMUL1"
-#elif EIGEN_RISCV64_DEFAULT_LMUL == 2
-#define TEST_LMUL        "LMUL2"
-#elif EIGEN_RISCV64_DEFAULT_LMUL == 4
-#define TEST_LMUL        "LMUL4"
 #endif
 
 #define TEST_MATRIX   // Test GEMM
@@ -38,7 +30,7 @@
 #ifndef TEST_FLOAT
 #define TEST_DOUBLE   // Test FP64
 #ifndef TEST_DOUBLE
-//#define TEST_BFLOAT   // Test BF16
+#define TEST_BFLOAT   // Test BF16
 #ifdef TEST_BFLOAT
 #define BFLOAT16
 #define BF16_WIDEN_ONE // Widen arrays first and use FP32
@@ -154,7 +146,11 @@
 #endif
 #else
 #ifndef TEST_FLOAT16
+#ifdef BF16_WIDEN_ONE
+#define TEST_STR         "BF16_W"
+#else
 #define TEST_STR         "BF16"
+#endif
 #else
 #ifdef FP16_NARROW
 #define TEST_STR         "FP16_N"
@@ -974,13 +970,14 @@ int main(int argc, char **argv)
     return 1;
   }
 
-  printf("Testing %s %s %s %s %s ", COMP_STR, TEST_STR, TEST_LMUL, TEST_VLEN, TEST_TYPE);
+  printf("Testing %s %s %s %s ", COMP_STR, TEST_STR, TEST_VLEN, TEST_TYPE);
 #ifdef TEST_MATRIX
 #if !defined(TEST_PACKING) || !defined(TEST_INITIALIZE)
   printf("NO_VERIFY ");
 #endif
 #endif
-  printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld\n\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc);
+  const char *release = __DATE__ " " __TIME__;
+  printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld %s\n\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc, release);
 
 #ifdef TEST_SET_SEED
   const char *openblas_str = getenv("OPENBLAS_SEED");
