@@ -26,4 +26,6 @@ export SIZE=127
 
 # Test small
 ./testOpenBLAS $ARCH 0 0 64 64 64 1 2.0 4.0
+./testOpenBLAS $ARCH 0 1 64 64 64 1 2.0 4.0
+./testOpenBLAS $ARCH 1 0 64 64 64 1 2.0 4.0
 ./testOpenBLAS $ARCH 1 1 64 64 64 1 2.0 4.0
