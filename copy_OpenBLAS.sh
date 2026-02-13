@@ -1,5 +1,6 @@
 export HOME2="/proj_sw/user_dev/ckerchner"
 export OPENBLAS_HOME="${HOME2}/OpenBLAS/kernel/riscv64"
+exit 1
 # Vectorized packing
 cp gemm_ncopy_4_rvv.c      ${OPENBLAS_HOME}
 cp gemm_ncopy_8_rvv.c      ${OPENBLAS_HOME}
