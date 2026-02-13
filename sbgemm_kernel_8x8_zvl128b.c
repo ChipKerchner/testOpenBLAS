@@ -1,6 +1,32 @@
 #include "common.h"
 #include <riscv_vector.h>
 
+#ifdef BF16_WIDEN_ONE
+#define FORCEINLINE      inline __attribute__((always_inline))
+#define B_UNROLL         32
+
+// Convert from BF16 to FP32
+static void FORCEINLINE B_CONV(__bf16 *BB, FLOAT *CONV, BLASLONG count)
+{
+    BLASLONG count2 = (count & (B_UNROLL - 1));
+    count &= -B_UNROLL;
+    while (count) {
+        vbfloat16m4_t B00 = __riscv_vle16_v_bf16m4(BB, B_UNROLL);
+        vfloat32m8_t B0 = __riscv_vfwcvtbf16_f_f_v_f32m8(B00, B_UNROLL);
+        __riscv_vse32_v_f32m8(CONV, B0, B_UNROLL);
+        BB += B_UNROLL;
+        CONV += B_UNROLL;
+        count -= B_UNROLL;
+    }
+    if (count2) {
+        BLASLONG gvl2 = __riscv_vsetvl_e16m4(count2);
+        vbfloat16m4_t B00 = __riscv_vle16_v_bf16m4(BB, gvl2);
+        vfloat32m8_t B0 = __riscv_vfwcvtbf16_f_f_v_f32m8(B00, gvl2);
+        __riscv_vse32_v_f32m8(CONV, B0, gvl2);
+    }
+}
+#endif
+
 int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B, FLOAT *C, BLASLONG ldc)
 {
     BLASLONG gvl = 0;
@@ -10,10 +36,11 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
     __bf16 *AA = (__bf16 *)(A);
 
 #ifdef BF16_WIDEN_ONE
-    FLOAT *B_CONV = NULL;
+    FLOAT *CONV = NULL;
     if ((M >= 4) && (N >= 4) && (K > 0)) {
-        B_CONV = (FLOAT *)(malloc(K * 8 * sizeof(FLOAT)));
-        if (!B_CONV) return 1;
+        CONV = (FLOAT *)(malloc((K * (8 + (M & -4))) * sizeof(FLOAT)));
+        if (!CONV) return 1;
+        B_CONV(AA, CONV + (K * 8), (M & -4) * K);
     }
 #endif
 
@@ -23,26 +50,16 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
         BLASLONG gvl = __riscv_vsetvl_e16m1(8);
 
 #ifdef BF16_WIDEN_ONE
-        BLASLONG bi2;
-        {
-            BLASLONG bi3 = 0;
-            BLASLONG gvl2;
-            bi2 = K * 8;
-            do {
-                gvl2 = __riscv_vsetvl_e16m4(bi2);
-                vbfloat16m4_t A00 = __riscv_vle16_v_bf16m4(&BB[bi3 + (n_top*K)], gvl2);
-                vfloat32m8_t A0 = __riscv_vfwcvtbf16_f_f_v_f32m8(A00, gvl2);
-                __riscv_vse32_v_f32m8(&B_CONV[bi3], A0, gvl2);
-                bi3 += gvl2;
-            } while (bi2 -= gvl2);
-        }
+        BLASLONG bi2 = K * 8;
+        B_CONV(BB + (n_top*K), CONV, bi2);
+        BLASLONG ai2 = K * 8;
 #endif
 
         for (BLASLONG i=0; i<M/8; i+=1) {
-            BLASLONG ai=m_top*K;
 #ifdef BF16_WIDEN_ONE
             bi2 = 0;
 #else
+            BLASLONG ai=m_top*K;
             BLASLONG bi=n_top*K;
 #endif
 
@@ -57,19 +74,18 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
 
             for (BLASLONG k=0; k<K; k++) {
 #ifdef BF16_WIDEN_ONE
-                float B0 = B_CONV[bi2+0];
-                float B1 = B_CONV[bi2+1];
-                float B2 = B_CONV[bi2+2];
-                float B3 = B_CONV[bi2+3];
-                float B4 = B_CONV[bi2+4];
-                float B5 = B_CONV[bi2+5];
-                float B6 = B_CONV[bi2+6];
-                float B7 = B_CONV[bi2+7];
+                float B0 = CONV[bi2+0];
+                float B1 = CONV[bi2+1];
+                float B2 = CONV[bi2+2];
+                float B3 = CONV[bi2+3];
+                float B4 = CONV[bi2+4];
+                float B5 = CONV[bi2+5];
+                float B6 = CONV[bi2+6];
+                float B7 = CONV[bi2+7];
                 bi2 += 8;
 
-                vbfloat16m1_t A00 = __riscv_vle16_v_bf16m1( &AA[ai+0*gvl], gvl );
-                vfloat32m2_t A0 = __riscv_vfwcvtbf16_f_f_v_f32m2(A00, gvl);
-                ai += 8;
+                vfloat32m2_t A0 = __riscv_vle32_v_f32m2(&CONV[ai2], gvl);
+                ai2 += 8;
 
                 result0 = __riscv_vfmacc_vf_f32m2(result0, B0, A0, gvl);
                 result1 = __riscv_vfmacc_vf_f32m2(result1, B1, A0, gvl);
@@ -142,10 +158,10 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
         if ( M & 4 ) {
             gvl = __riscv_vsetvl_e16m1(4);
 
-            BLASLONG ai=m_top*K;
 #ifdef BF16_WIDEN_ONE
             bi2 = 0;
 #else
+            BLASLONG ai=m_top*K;
             BLASLONG bi=n_top*K;
 #endif
 
@@ -160,19 +176,18 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
 
             for (BLASLONG k=0; k < K; ++k) {
 #ifdef BF16_WIDEN_ONE
-                float B0 = B_CONV[bi2+0];
-                float B1 = B_CONV[bi2+1];
-                float B2 = B_CONV[bi2+2];
-                float B3 = B_CONV[bi2+3];
-                float B4 = B_CONV[bi2+4];
-                float B5 = B_CONV[bi2+5];
-                float B6 = B_CONV[bi2+6];
-                float B7 = B_CONV[bi2+7];
+                float B0 = CONV[bi2+0];
+                float B1 = CONV[bi2+1];
+                float B2 = CONV[bi2+2];
+                float B3 = CONV[bi2+3];
+                float B4 = CONV[bi2+4];
+                float B5 = CONV[bi2+5];
+                float B6 = CONV[bi2+6];
+                float B7 = CONV[bi2+7];
                 bi2 += 8;
 
-                vbfloat16mf2_t A00 = __riscv_vle16_v_bf16mf2( &AA[ai+0*gvl], gvl );
-                vfloat32m1_t A0 = __riscv_vfwcvtbf16_f_f_v_f32m1(A00, gvl);
-                ai += 4;
+                vfloat32m1_t A0 = __riscv_vle32_v_f32m1(&CONV[ai2], gvl);
+                ai2 += 4;
 
                 result0 = __riscv_vfmacc_vf_f32m1(result0, B0, A0, gvl);
                 result1 = __riscv_vfmacc_vf_f32m1(result1, B1, A0, gvl);
@@ -359,26 +374,16 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
         m_top = 0;
 
 #ifdef BF16_WIDEN_ONE
-        BLASLONG bi2;
-        {
-            BLASLONG bi3 = 0;
-            BLASLONG gvl2;
-            bi2 = K * 4;
-            do {
-                gvl2 = __riscv_vsetvl_e16m4(bi2);
-                vbfloat16m4_t A00 = __riscv_vle16_v_bf16m4(&BB[bi3 + (n_top*K)], gvl2);
-                vfloat32m8_t A0 = __riscv_vfwcvtbf16_f_f_v_f32m8(A00, gvl2);
-                __riscv_vse32_v_f32m8(&B_CONV[bi3], A0, gvl2);
-                bi3 += gvl2;
-            } while (bi2 -= gvl2);
-        }
+        BLASLONG bi2 = K * 4;
+        B_CONV(BB + (n_top*K), CONV, bi2);
+        BLASLONG ai2 = K * 8;
 #endif
 
         for (BLASLONG i=0; i<M/8; i+=1) {
-            BLASLONG ai=m_top*K;
 #ifdef BF16_WIDEN_ONE
             bi2 = 0;
 #else
+            BLASLONG ai=m_top*K;
             BLASLONG bi=n_top*K;
 #endif
 
@@ -389,15 +394,14 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
 
             for (BLASLONG k=0; k<K; k++) {
 #ifdef BF16_WIDEN_ONE
-                float B0 = B_CONV[bi2+0];
-                float B1 = B_CONV[bi2+1];
-                float B2 = B_CONV[bi2+2];
-                float B3 = B_CONV[bi2+3];
+                float B0 = CONV[bi2+0];
+                float B1 = CONV[bi2+1];
+                float B2 = CONV[bi2+2];
+                float B3 = CONV[bi2+3];
                 bi2 += 4;
 
-                vbfloat16m1_t A00 = __riscv_vle16_v_bf16m1( &AA[ai+0*gvl], gvl );
-                vfloat32m2_t A0 = __riscv_vfwcvtbf16_f_f_v_f32m2(A00, gvl);
-                ai += 8;
+                vfloat32m2_t A0 = __riscv_vle32_v_f32m2(&CONV[ai2], gvl);
+                ai2 += 8;
 
                 result0 = __riscv_vfmacc_vf_f32m2(result0, B0, A0, gvl);
                 result1 = __riscv_vfmacc_vf_f32m2(result1, B1, A0, gvl);
@@ -444,10 +448,10 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
         if ( M & 4 ) {
             gvl = __riscv_vsetvl_e16m1(4);
 
-            BLASLONG ai=m_top*K;
 #ifdef BF16_WIDEN_ONE
             bi2 = 0;
 #else
+            BLASLONG ai=m_top*K;
             BLASLONG bi=n_top*K;
 #endif
 
@@ -458,15 +462,14 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
 
             for (BLASLONG k=0; k < K; ++k) {
 #ifdef BF16_WIDEN_ONE
-                float B0 = B_CONV[bi2+0];
-                float B1 = B_CONV[bi2+1];
-                float B2 = B_CONV[bi2+2];
-                float B3 = B_CONV[bi2+3];
+                float B0 = CONV[bi2+0];
+                float B1 = CONV[bi2+1];
+                float B2 = CONV[bi2+2];
+                float B3 = CONV[bi2+3];
                 bi2 += 4;
 
-                vbfloat16mf4_t A00 = __riscv_vle16_v_bf16mf4( &AA[ai+0*gvl], gvl );
-                vfloat32m1_t A0 = __riscv_vlmul_ext_v_f32mf2_f32m1(__riscv_vfwcvtbf16_f_f_v_f32mf2(A00, gvl));
-                ai += 4;
+                vfloat32m1_t A0 = __riscv_vle32_v_f32m1(&CONV[ai2], gvl);
+                ai2 += 4;
 
                 result0 = __riscv_vfmacc_vf_f32m1(result0, B0, A0, gvl);
                 result1 = __riscv_vfmacc_vf_f32m1(result1, B1, A0, gvl);
@@ -817,7 +820,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
         n_top += 1;
     }
 #ifdef BF16_WIDEN_ONE
-    if (B_CONV) free(B_CONV);
+    if (CONV) free(CONV);
 #endif
     return 0;
 }
