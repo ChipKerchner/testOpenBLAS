@@ -21,6 +21,13 @@
 #define TEST_VLEN        "VLEN128"
 #endif
 
+#define TEST_VERIFY     // Verify
+
+#ifdef TEST_VERIFY
+#define TEST_PACKING    // Include packing
+#define TEST_INITIALIZE // Include initializing
+#endif
+
 #define TEST_MATRIX   // Test GEMM
 #ifndef TEST_MATRIX
 #define TEST_VECTOR   // Test GEMV
@@ -34,6 +41,9 @@
 #ifdef TEST_BFLOAT
 #define BFLOAT16
 #define BF16_WIDEN_ONE // Widen arrays first and use FP32
+#ifndef TEST_VERIFY
+#define BF16_DONT_CONV // Don't convert BF16 to FP32
+#endif
 #else
 #define TEST_FLOAT16  // Test FP16
 #define HFLOAT16
@@ -42,13 +52,6 @@
 #else
 #define DOUBLE
 #endif
-#endif
-
-#define TEST_VERIFY     // Verify
-
-#ifdef TEST_VERIFY
-#define TEST_PACKING    // Include packing
-#define TEST_INITIALIZE // Include initializing
 #endif
 
 #ifdef TEST_VECTOR

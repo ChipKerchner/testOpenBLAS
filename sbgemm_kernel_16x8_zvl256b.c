@@ -40,7 +40,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
     if ((M >= 4) && (N >= 4) && (K > 0)) {
         CONV = (FLOAT *)(malloc((K * (8 + (M & -4))) * sizeof(FLOAT)));
         if (!CONV) return 1;
+#ifndef BF16_DONT_CONV
         B_CONV(AA, CONV + (K * 8), (M & -4) * K);
+#endif
     }
 #endif
 
@@ -50,9 +52,11 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
         BLASLONG gvl = __riscv_vsetvl_e16m1(16);
 #ifdef BF16_WIDEN_ONE
         BLASLONG bi2 = K * 8;
+#ifndef BF16_DONT_CONV
         if (M >= 4) {
             B_CONV(BB + (n_top*K), CONV, bi2);
         }
+#endif
         BLASLONG ai2 = K * 8;
 #endif
 
@@ -474,9 +478,11 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
 
 #ifdef BF16_WIDEN_ONE
         BLASLONG bi2 = K * 4;
+#ifndef BF16_DONT_CONV
         if (M >= 4) {
             B_CONV(BB + (n_top*K), CONV, bi2);
         }
+#endif
         BLASLONG ai2 = K * 8;
 #endif
 
