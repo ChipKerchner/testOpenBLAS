@@ -27,6 +27,12 @@ static void FORCEINLINE B_CONV(__bf16 *BB, FLOAT *CONV, BLASLONG count)
 }
 #endif
 
+#ifndef VECTORIZE_MEMSET
+#define memset_zero(ptr, size, dir)  memset(ptr, 0, size)
+#else
+void memset_zero(void *input, BLASLONG size, bool dir);
+#endif
+
 int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B, FLOAT *C, BLASLONG ldc)
 {
     BLASLONG gvl = 0;
@@ -42,6 +48,8 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B,
         if (!CONV) return 1;
 #ifndef BF16_DONT_CONV
         B_CONV(AA, CONV + (K * 8), (M & -4) * K);
+#else
+	memset_zero(CONV, (K * (8 + (M & -4))) * sizeof(FLOAT), false);
 #endif
     }
 #endif
