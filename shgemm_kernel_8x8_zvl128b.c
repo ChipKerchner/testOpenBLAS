@@ -1,6 +1,8 @@
 #include "common.h"
 #include <riscv_vector.h>
 
+//#define FP16_NARROW     // Accumulate in FP16
+
 int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, IFLOAT *A, IFLOAT *B, FLOAT *C, BLASLONG ldc)
 {
     BLASLONG gvl = 0;

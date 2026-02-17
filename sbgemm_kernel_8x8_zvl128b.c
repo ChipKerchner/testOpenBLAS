@@ -1,6 +1,7 @@
 #include "common.h"
 #include <riscv_vector.h>
 
+//#define BF16_WIDEN_ONE  // Convert pre-hand and do operations in FP32
 #define USE_BF16_CVT    // Comment out for pre-RVA23 systems
 
 #ifdef BF16_WIDEN_ONE
