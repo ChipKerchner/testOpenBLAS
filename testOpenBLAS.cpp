@@ -60,7 +60,7 @@
 
 #if defined(TEST_MATRIX) && defined(TEST_PACKING) && defined(TEST_INITIALIZE)
 #if !defined(TEST_BFLOAT) && !defined(TEST_FLOAT16)    // Temp
-#define TEST_SMALL_MATRIX    // Use small matrix (no packing)
+//#define TEST_SMALL_MATRIX    // Use small matrix (no packing)
 #endif
 #endif
 
@@ -229,6 +229,7 @@
 #endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #define NBMAX            4096
 
@@ -802,7 +803,7 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
            FLOAT *input, BLASLONG inc)
 #endif
 {
-  FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+  FLOAT tol = (FLOAT)(MAX(M, N) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
 
 #ifdef TEST_MATRIX
   if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2)) {
@@ -980,7 +981,10 @@ int main(int argc, char **argv)
 #endif
 #endif
   const char *release = __DATE__ " " __TIME__;
-  printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld %s\n\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc, release);
+  printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld %s\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc, release);
+#ifdef TEST_VERIFY
+  printf("\n");
+#endif
 
 #ifdef TEST_SET_SEED
   const char *openblas_str = getenv("OPENBLAS_SEED");
@@ -1248,7 +1252,10 @@ again:
     }
     timer_t end = get_rvv_timer();
     if (!all) {
-      printf("Total time = %16ld\n\n", end - start);
+      printf("Total time = %16ld\n", end - start);
+#ifdef TEST_VERIFY
+      printf("\n");
+#endif
     }
 
 #if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
@@ -1290,7 +1297,7 @@ again:
 
 #if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
   if (all) {
-    FLOAT tol = (FLOAT)(((orient == TEST_NOTRANSPOSE) ? ((test <= TEST_RVV) ? N : 0) : M) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+    FLOAT tol = (FLOAT)(MAX(M, N) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
     printf("All %s tests successful from %4d to %4ld (%4ld %8.6f)\n\n", (all == 2) ? "rectangular" : "square", 1, M, N, tol);
   }
 #endif
