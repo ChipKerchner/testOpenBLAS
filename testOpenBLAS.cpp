@@ -54,6 +54,9 @@
 #endif
 #endif
 
+//#define GEMM_SWITCH_INPUT // Switch M & N inputs
+#define GEMM_RIGHT_EDGE   // One pass on right edge
+
 #ifdef TEST_VECTOR
 //#define VERIFY_MATRIX        // Verfiy GEMV versus GEMM
 #endif
@@ -920,9 +923,17 @@ int main(int argc, char **argv)
         orient2 = orient;
 #endif
         if (argc > 4) {
+#ifdef GEMM_SWITCH_INPUT
+          N = atol(argv[4]);
+#else
           M = atol(argv[4]);
+#endif
           if (argc > 5) {
+#ifdef GEMM_SWITCH_INPUT
+            M = atol(argv[5]);
+#else
             N = atol(argv[5]);
+#endif
             if (argc > 6) {
               K = atol(argv[6]);
               if (argc > 7) {
