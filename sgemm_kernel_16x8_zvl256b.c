@@ -61,11 +61,7 @@ static vfloat32m1_t FORCEINLINE A_UNROLL(const BLASLONG M, const BLASLONG S, FLO
                 *A2 += 1;
             } else {
                 *A1 += 4;
-                if (M == 5) {
-                     *A2 += 1;
-                } else {
-                     *A2 += 2;
-                }
+                *A2 += ((M == 5) ? 1 : 2);
             }
         } else {
             A0 = __riscv_vle32_v_f32m1_tumu(mask2, A0, *A3, M);
@@ -106,7 +102,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32m2_t A6 = __riscv_vle32_v_f32m2(A0, M);
         A0 += M;
 #else
-        const BLASLONG M2 = M - 8;
+        const BLASLONG M2 = M & 7;
 
         vfloat32m2_t A6 = A_UNROLL2(M2, S, &A0, &A1, &A2, &A3, mask1, mask2);
 #endif
