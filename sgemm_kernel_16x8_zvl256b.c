@@ -48,10 +48,10 @@ Derived:
 #define FORCEINLINE      inline __attribute__((always_inline))
 
 #ifndef GEMM_NEW_PACKING
-static vfloat32m1_t FORCEINLINE A_UNROLL(BLASLONG K, const BLASLONG M, FLOAT** A1, FLOAT** A2, FLOAT** A3, vbool32_t mask1, vbool32_t mask2)
+static vfloat32m1_t FORCEINLINE A_UNROLL(BLASLONG K, const BLASLONG M, const BLASLONG S, FLOAT** A1, FLOAT** A2, FLOAT** A3, vbool32_t mask1, vbool32_t mask2)
 {
     vfloat32m1_t A0 = __riscv_vle32_v_f32m1(*A1, M);
-    if ((M == 1) || (M == 2) || (M == 4) || (M == 8)) {
+    if ((S == 1) || (M == 1) || (M == 2) || (M == 4) || (M == 8)) {
         *A1 += M;
     } else if (M == 3) {
         A0 = __riscv_vle32_v_f32m1_tumu(mask1, A0, *A2, M);
@@ -79,7 +79,7 @@ static vfloat32m1_t FORCEINLINE A_UNROLL(BLASLONG K, const BLASLONG M, FLOAT** A
 #ifdef GEMM_NEW_PACKING
 static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FLOAT* A0, FLOAT* B, FLOAT* C, BLASLONG ldc)
 #else
-static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FLOAT* A0, FLOAT* A1, FLOAT* A2, FLOAT* A3, FLOAT* B, FLOAT* C, BLASLONG ldc, vbool32_t mask1, vbool32_t mask2)
+static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG S, FLOAT alpha, FLOAT* A0, FLOAT* A1, FLOAT* A2, FLOAT* A3, FLOAT* B, FLOAT* C, BLASLONG ldc, vbool32_t mask1, vbool32_t mask2)
 #endif
 {
     float B0 = B[0];
@@ -101,7 +101,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FL
 
         vfloat32m1_t A4 = __riscv_vle32_v_f32m1(A0, 8);
         A0 += 8;
-        vfloat32m1_t A5 = A_UNROLL(K, M2, &A1, &A2, &A3, mask1, mask2);
+        vfloat32m1_t A5 = A_UNROLL(K, M2, S, &A1, &A2, &A3, mask1, mask2);
         vfloat32m2_t A6 = __riscv_vcreate_v_f32m1_f32m2(A4, A5);
 #endif
 
@@ -131,7 +131,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FL
 #else
             A4 = __riscv_vle32_v_f32m1(A0, 8);
             A0 += 8;
-            A5 = A_UNROLL(K, M2, &A1, &A2, &A3, mask1, mask2);
+            A5 = A_UNROLL(K, M2, S, &A1, &A2, &A3, mask1, mask2);
             A6 = __riscv_vcreate_v_f32m1_f32m2(A4, A5);
 #endif
 
@@ -179,7 +179,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FL
         vfloat32m1_t A4 = __riscv_vle32_v_f32m1(A0, M);
         A0 += M;
 #else
-        vfloat32m1_t A4 = A_UNROLL(K, M, &A1, &A2, &A3, mask1, mask2);
+        vfloat32m1_t A4 = A_UNROLL(K, M, S, &A1, &A2, &A3, mask1, mask2);
 #endif
 
         vfloat32m1_t result0 = __riscv_vfmul_vf_f32m1(A4, B0, M);
@@ -206,7 +206,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FL
             A4 = __riscv_vle32_v_f32m1(A0, M);
             A0 += M;
 #else
-            A4 = A_UNROLL(K, M, &A1, &A2, &A3, mask1, mask2);
+            A4 = A_UNROLL(K, M, S, &A1, &A2, &A3, mask1, mask2);
 #endif
 
             result0 = __riscv_vfmacc_vf_f32m1(result0, B0, A4, M);
@@ -279,49 +279,35 @@ static void FORCEINLINE M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG M_BI
     if (M > 8) {
         A1 = A + (K * 8);
         if (M_BITS <= 1) {
-            if (M == 12) {
-                M_TAIL_ONE(K, 12, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
-            } else if (M == 10) {
-                M_TAIL_ONE(K, 10, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
-            } else {
-                M_TAIL_ONE(K, 9, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
-            }
+            M_TAIL_ONE(K, M, 1, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
         } else if (M_BITS == 2) {
             A2 += (K * 8);
             if (M == 14) {
-                M_TAIL_ONE(K, 14, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 14, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
             } else if (M == 13) {
-                M_TAIL_ONE(K, 13, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 13, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
             } else {
-                M_TAIL_ONE(K, 11, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 11, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
             }
         } else {
             A2 += (K * 8);
             A3 += (K * 8);
-            M_TAIL_ONE(K, 15, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+            M_TAIL_ONE(K, 15, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
         }
     } else {
         A1 = A;
         if (M_BITS <= 1) {
-            if (M == 8) {
-                M_TAIL_ONE(K, 8, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
-            } else if (M == 4) {
-                M_TAIL_ONE(K, 4, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
-            } else if (M == 2) {
-                M_TAIL_ONE(K, 2, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
-            } else {
-                M_TAIL_ONE(K, 1, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
-            }
+            M_TAIL_ONE(K, M, 1, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
         } else if (M_BITS == 2) {
             if (M == 6) {
-                M_TAIL_ONE(K, 6, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 6, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
             } else if (M == 5) {
-                M_TAIL_ONE(K, 5, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 5, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
             } else {
-                M_TAIL_ONE(K, 3, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 3, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
             }
         } else {
-            M_TAIL_ONE(K, 7, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+            M_TAIL_ONE(K, 7, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
         }
     }
 #else
