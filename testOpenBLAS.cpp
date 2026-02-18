@@ -923,17 +923,9 @@ int main(int argc, char **argv)
         orient2 = orient;
 #endif
         if (argc > 4) {
-#ifdef GEMM_SWITCH_INPUT
-          N = atol(argv[4]);
-#else
           M = atol(argv[4]);
-#endif
           if (argc > 5) {
-#ifdef GEMM_SWITCH_INPUT
-            M = atol(argv[5]);
-#else
             N = atol(argv[5]);
-#endif
             if (argc > 6) {
               K = atol(argv[6]);
               if (argc > 7) {
@@ -995,6 +987,12 @@ int main(int argc, char **argv)
   printf("%d %d %d %4ld %4ld %4ld %3d %4.1f %4.1f %2ld %s\n", test, orient, orient2, M, N, K, iter, alpha, beta, inc, release);
 #ifdef TEST_VERIFY
   printf("\n");
+#endif
+
+#ifdef GEMM_SWITCH_INPUT
+  BLASLONG swap = M;
+  M = N;
+  N = swap;
 #endif
 
 #ifdef TEST_SET_SEED
