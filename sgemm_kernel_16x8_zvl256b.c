@@ -251,7 +251,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
     }
 }
 
-static void FORCEINLINE M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG M_BITS, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG M_BITS, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
 #ifndef GEMM_NEW_PACKING
     vbool32_t mask1, mask2;
