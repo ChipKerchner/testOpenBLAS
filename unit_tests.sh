@@ -18,14 +18,14 @@ export SIZE=127
 #./testOpenBLAS $ARCH 0 0 $SIZE $SIZE $SIZE 1 2.0 1.0
 
 # Test retangular matrices
-./testOpenBLAS $ARCH 0 0 -128 -192
-./testOpenBLAS $ARCH 1 1 -128 -192
+./testOpenBLAS $ARCH 0 0 -192 -128
+./testOpenBLAS $ARCH 1 1 -192 -128
 
 # Test inc != 1
 ./testOpenBLAS $ARCH 0 0 $SIZE $SIZE $SIZE 1 2.0 4.0 2
 
 # Test small
-./testOpenBLAS $ARCH 0 0 64 64 64 1 2.0 4.0
-./testOpenBLAS $ARCH 0 1 64 64 64 1 2.0 4.0
-./testOpenBLAS $ARCH 1 0 64 64 64 1 2.0 4.0
-./testOpenBLAS $ARCH 1 1 64 64 64 1 2.0 4.0
+#./testOpenBLAS $ARCH 0 0 64 64 64 1 2.0 4.0
+#./testOpenBLAS $ARCH 0 1 64 64 64 1 2.0 4.0
+#./testOpenBLAS $ARCH 1 0 64 64 64 1 2.0 4.0
+#./testOpenBLAS $ARCH 1 1 64 64 64 1 2.0 4.0

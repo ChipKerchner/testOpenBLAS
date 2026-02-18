@@ -54,7 +54,7 @@
 #endif
 #endif
 
-//#define GEMM_SWITCH_INPUT // Switch M & N inputs
+#define GEMM_SWITCH_INPUT // Switch M & N inputs
 #define GEMM_RIGHT_EDGE   // One pass on right edge
 
 #ifdef TEST_VECTOR
