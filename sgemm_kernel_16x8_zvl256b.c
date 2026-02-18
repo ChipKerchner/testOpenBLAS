@@ -47,9 +47,7 @@ Derived:
 
 #define FORCEINLINE      inline __attribute__((always_inline))
 
-#ifdef GEMM_NEW_PACKING
-static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FLOAT* A0, FLOAT*, FLOAT*, FLOAT*, FLOAT* B, FLOAT* C, BLASLONG ldc, vbool32_t, vbool32_t)
-#else
+#ifndef GEMM_NEW_PACKING
 static vfloat32m1_t FORCEINLINE A_UNROLL(BLASLONG K, const BLASLONG M, FLOAT** A1, FLOAT** A2, FLOAT** A3, vbool32_t mask1, vbool32_t mask2)
 {
     vfloat32m1_t A0 = __riscv_vle32_v_f32m1(*A1, M);
@@ -76,7 +74,11 @@ static vfloat32m1_t FORCEINLINE A_UNROLL(BLASLONG K, const BLASLONG M, FLOAT** A
     }
     return A0;
 }
+#endif
 
+#ifdef GEMM_NEW_PACKING
+static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FLOAT* A0, FLOAT*, FLOAT*, FLOAT*, FLOAT* B, FLOAT* C, BLASLONG ldc, vbool32_t, vbool32_t)
+#else
 static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FLOAT* A0, FLOAT* A1, FLOAT* A2, FLOAT* A3, FLOAT* B, FLOAT* C, BLASLONG ldc, vbool32_t mask1, vbool32_t mask2)
 #endif
 {
@@ -248,7 +250,9 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, FLOAT alpha, FL
 
 static void FORCEINLINE M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG M_BITS, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
-    vbool32_t mask1, mask2;
+    vbool32_t mask1;
+#ifndef GEMM_NEW_PACKING
+    vbool32_t mask2;
     BLASLONG M2 = M & 7;
     FLOAT *A1, *A2, *A3;
 
@@ -321,6 +325,10 @@ static void FORCEINLINE M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG M_BI
             M_TAIL_ONE(K, 7, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
         }
     }
+#else
+    mask1 = __riscv_vreinterpret_v_u8m1_b32(__riscv_vundefined_u8m1());
+    M_TAIL_ONE(K, M, alpha, A, A, A, A, B, C, ldc, mask1, mask1);
+#endif
 }
 #endif
 
