@@ -55,20 +55,23 @@ static vfloat32m1_t FORCEINLINE A_UNROLL(const BLASLONG M, const BLASLONG S, FLO
         *A1 += M;
     } else {
         A0 = __riscv_vle32_v_f32m1_tumu(mask1, A0, *A2, M);
-        if (M == 3) {
-            *A1 += 2;
-            *A2 += 1;
-        } else {
-            *A1 += 4;
-            if (M == 5) {
+        if (S == 2) {
+            if (M < 5) {
+                *A1 += 2;
                 *A2 += 1;
             } else {
-                *A2 += 2;
-                if (M == 7) {
-                    A0 = __riscv_vle32_v_f32m1_tumu(mask2, A0, *A3, M);
-                    *A3 += 1;
+                *A1 += 4;
+                if (M == 5) {
+                     *A2 += 1;
+                } else {
+                     *A2 += 2;
                 }
-	    }
+            }
+        } else {
+            A0 = __riscv_vle32_v_f32m1_tumu(mask2, A0, *A3, M);
+            *A1 += 4;
+            *A2 += 2;
+            *A3 += 1;
         }
     }
     return A0;
@@ -103,7 +106,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32m2_t A6 = __riscv_vle32_v_f32m2(A0, M);
         A0 += M;
 #else
-        const BLASLONG M2 = M & 7;
+        const BLASLONG M2 = M - 8;
 
         vfloat32m2_t A6 = A_UNROLL2(M2, S, &A0, &A1, &A2, &A3, mask1, mask2);
 #endif
@@ -259,19 +262,18 @@ static void FORCEINLINE M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG M_BI
         mask1 = __riscv_vreinterpret_v_u8m1_b32(__riscv_vundefined_u8m1());
         A1 = A + ((M > 8) ? (K * 8) : 0);
         M_TAIL_ONE(K, M, 1, alpha, A, A1, A1, A1, B, C, ldc, mask1, mask1);
-	return;
+        return;
     } else if (M_BITS == 2) {
-        mask2 = __riscv_vreinterpret_v_u8m1_b32(__riscv_vundefined_u8m1());
-        if (M2 == 6) {
+        if (M2 > 5) {
             A2 = A + (K * 4) - 4;
             mask1 = __riscv_vreinterpret_v_u8m1_b32(__riscv_vmv_v_x_u8m1(0x30, M2));
         } else if (M2 == 5) {
             A2 = A + (K * 4) - 4;
             mask1 = __riscv_vreinterpret_v_u8m1_b32(__riscv_vmv_v_x_u8m1(0x10, M2));
-	} else {  // 3
+        } else {  // 3
             A2 = A + (K * 2) - 2;
             mask1 = __riscv_vreinterpret_v_u8m1_b32(__riscv_vmv_v_x_u8m1(0x04, M2));
-	}
+        }
     } else {
         A2 = A + (K * 4) - 4;
         A3 = A + (K * 6) - 6;
@@ -283,29 +285,29 @@ static void FORCEINLINE M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG M_BI
         A1 = A + (K * 8);
         A2 += (K * 8);
         if (M_BITS == 2) {
-            if (M == 14) {
-                M_TAIL_ONE(K, 14, 0, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask2);
+            if (M > 13) {
+                M_TAIL_ONE(K, 14, 2, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask1);
             } else if (M == 13) {
-                M_TAIL_ONE(K, 13, 0, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 13, 2, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask1);
             } else {
-                M_TAIL_ONE(K, 11, 0, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 11, 2, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask1);
             }
         } else {
             A3 += (K * 8);
-            M_TAIL_ONE(K, 15, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+            M_TAIL_ONE(K, 15, 3, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
         }
     } else {
         A1 = A;
         if (M_BITS == 2) {
-            if (M == 6) {
-                M_TAIL_ONE(K, 6, 0, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask2);
+            if (M > 5) {
+                M_TAIL_ONE(K, 6, 2, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask1);
             } else if (M == 5) {
-                M_TAIL_ONE(K, 5, 0, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 5, 2, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask1);
             } else {
-                M_TAIL_ONE(K, 3, 0, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask2);
+                M_TAIL_ONE(K, 3, 2, alpha, A, A1, A2, A2, B, C, ldc, mask1, mask1);
             }
         } else {
-            M_TAIL_ONE(K, 7, 0, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
+            M_TAIL_ONE(K, 7, 3, alpha, A, A1, A2, A3, B, C, ldc, mask1, mask2);
         }
     }
 #else
