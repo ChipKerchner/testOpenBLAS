@@ -42,7 +42,7 @@ Derived:
 
 //#define GEMM_RIGHT_EDGE    // One pass for right edge - unpacking A
 //#define GEMM_BOTTOM_EDGE   // One pass for bottom edge - unrolling K
-#define USE_LMUL2
+//#define USE_LMUL2
 
 #ifdef GEMM_RIGHT_EDGE
 //#define GEMM_NEW_PACKING   // Right edge packed data friendly
@@ -50,13 +50,13 @@ Derived:
 #define FORCEINLINE      inline __attribute__((always_inline))
 
 #ifndef GEMM_NEW_PACKING
-static vfloat32m1_t FORCEINLINE A_UNROLL(const BLASLONG M, const BLASLONG S, FLOAT** A1, FLOAT** A2, FLOAT** A3, vbool32_t mask1, vbool32_t mask2)
+static vfloat32m1_t FORCEINLINE A_UNROLL(const BLASLONG M, const BLASLONG M2, const BLASLONG S, FLOAT** A1, FLOAT** A2, FLOAT** A3, vbool32_t mask1, vbool32_t mask2)
 {
-    vfloat32m1_t A0 = __riscv_vle32_v_f32m1(*A1, M);
+    vfloat32m1_t A0 = __riscv_vle32_v_f32m1(*A1, M2);
     if ((S == 1) || (M == 1) || (M == 2) || (M == 4) || (M == 8)) {
         *A1 += M;
     } else {
-        A0 = __riscv_vle32_v_f32m1_tumu(mask1, A0, *A2, M);
+        A0 = __riscv_vle32_v_f32m1_tumu(mask1, A0, *A2, M2);
         if (S == 2) {
             if (M < 5) {
                 *A1 += 2;
@@ -66,7 +66,7 @@ static vfloat32m1_t FORCEINLINE A_UNROLL(const BLASLONG M, const BLASLONG S, FLO
                 *A2 += ((M == 5) ? 1 : 2);
             }
         } else {
-            A0 = __riscv_vle32_v_f32m1_tumu(mask2, A0, *A3, M);
+            A0 = __riscv_vle32_v_f32m1_tumu(mask2, A0, *A3, M2);
             *A1 += 4;
             *A2 += 2;
             *A3 += 1;
@@ -77,8 +77,8 @@ static vfloat32m1_t FORCEINLINE A_UNROLL(const BLASLONG M, const BLASLONG S, FLO
 
 static vfloat32m2_t FORCEINLINE A_UNROLL2(const BLASLONG M, const BLASLONG S, FLOAT** A0, FLOAT** A1, FLOAT** A2, FLOAT** A3, vbool32_t mask1, vbool32_t mask2)
 {
-    vfloat32m1_t A4 = A_UNROLL(8, 1, A0, A0, A0, mask1, mask2);
-    vfloat32m1_t A5 = A_UNROLL(M, S, A1, A2, A3, mask1, mask2);
+    vfloat32m1_t A4 = A_UNROLL(8, 8, 1, A0, A0, A0, mask1, mask2);
+    vfloat32m1_t A5 = A_UNROLL(M, 8, S, A1, A2, A3, mask1, mask2);
     return __riscv_vcreate_v_f32m1_f32m2(A4, A5);
 }
 #endif
@@ -221,7 +221,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32m1_t A4 = __riscv_vle32_v_f32m1(A0, M);
         A0 += M;
 #else
-        vfloat32m1_t A4 = A_UNROLL(M, S, &A1, &A2, &A3, mask1, mask2);
+        vfloat32m1_t A4 = A_UNROLL(M, M, S, &A1, &A2, &A3, mask1, mask2);
 #endif
 
         vfloat32m1_t result0, result1, result2, result3, result4, result5, result6, result7;
@@ -261,7 +261,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             A4 = __riscv_vle32_v_f32m1(A0, M);
             A0 += M;
 #else
-            A4 = A_UNROLL(M, S, &A1, &A2, &A3, mask1, mask2);
+            A4 = A_UNROLL(M, M, S, &A1, &A2, &A3, mask1, mask2);
 #endif
 
             result0 = __riscv_vfmacc_vf_f32m1(result0, B0, A4, M);
@@ -463,9 +463,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
     for (BLASLONG j=0; j<N/8; j+=1) {
         m_top = 0;
 #ifdef USE_LMUL2
-        BLASLONG gvl = __riscv_vsetvl_e32m2(16);
+        gvl = __riscv_vsetvl_e32m2(16);
 #else
-        BLASLONG gvl = __riscv_vsetvl_e32m1(8);
+        gvl = __riscv_vsetvl_e32m1(8);
 #endif
 
 
