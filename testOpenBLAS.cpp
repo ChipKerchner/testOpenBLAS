@@ -56,6 +56,7 @@
 
 #define GEMM_SWITCH_INPUT // Switch M & N inputs
 #define GEMM_RIGHT_EDGE   // One pass on right edge
+#define GEMM_BOTTOM_EDGE  // One pass on bottom edge
 
 #ifdef TEST_VECTOR
 //#define VERIFY_MATRIX        // Verfiy GEMV versus GEMM
@@ -214,7 +215,7 @@
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
 #define TRANS_EPSILON    1
 #else
-#define TRANS_EPSILON    4 * 8
+#define TRANS_EPSILON    8
 #endif
 
 #ifdef TEST_DOUBLE
@@ -232,7 +233,6 @@
 #endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 #define NBMAX            4096
 
@@ -493,6 +493,8 @@ float32tobf16(float inp)
 #endif
 }
 
+unsigned int openblas_seed = 1;
+
 #define USE_NEW_RAND
 
 #ifdef USE_NEW_RAND
@@ -698,7 +700,7 @@ void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
 #endif
 }
 
-int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N, BLASLONG K, const char *str, int orient, int orient2)
+int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N, BLASLONG K, const char *str, int orient, int orient2, FLOAT *err)
 {
   FLOAT maxOut = (FLOAT)0;
   BLASLONG m = 0, n = 0;
@@ -714,8 +716,9 @@ int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N,
       }
     }
   }
+  *err = maxOut;
   if (maxOut > tol) {
-    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld %4ld (%8.6f %8.6f %4ld %4ld %4ld %d %d)\n\n", TEST_STR, str, output0[(n * M) + m], output1[(n * M) + m], m, n, maxOut, tol, M, N, K, orient, orient2);
+    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld %4ld (%8.6f %8.6f %4ld %4ld %4ld %d %d - %10u)\n\n", TEST_STR, str, output0[(n * M) + m], output1[(n * M) + m], m, n, maxOut, tol, M, N, K, orient, orient2, openblas_seed);
     return 1;
   }
   return 0;
@@ -748,7 +751,7 @@ void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, IFLOAT *input_vector, IFL
   }
 }
 
-int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG size, BLASLONG size2, const char *str, int orient, BLASLONG inc)
+int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG size, BLASLONG size2, const char *str, int orient, BLASLONG inc, FLOAT *err)
 {
   FLOAT maxOut = (FLOAT)0;
   BLASLONG i = 0;
@@ -759,6 +762,7 @@ int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG 
       i = j;
     }
   }
+  *err = maxOut;
   if (maxOut > tol) {
     fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld (%8.6f %8.6f %4ld %4ld %d)\n\n", TEST_STR, str, output0[i], output1[i], i, maxOut, tol, size, size2, orient);
     return 1;
@@ -799,19 +803,19 @@ int test_F32(int orient, FLOAT *input_matrix1, FLOAT *input_vector, FLOAT *outpu
 
 #ifdef TEST_MATRIX
 int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG K, IFLOAT *input_matrix0,
-           IFLOAT *input_matrix1, FLOAT *output0, FLOAT *output1, FLOAT alpha)
+           IFLOAT *input_matrix1, FLOAT *output0, FLOAT *output1, FLOAT alpha, FLOAT *err)
 #else
 int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG out, IFLOAT *input_matrix1,
            IFLOAT *input_vector1, FLOAT *output0, FLOAT *output1, FLOAT *output2, FLOAT alpha, FLOAT beta,
-           FLOAT *input, BLASLONG inc)
+           FLOAT *input, BLASLONG inc, FLOAT *err)
 #endif
 {
-  FLOAT tol = (FLOAT)(MAX(M, N) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+  FLOAT tol = (FLOAT)(K * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
 
 #ifdef TEST_MATRIX
-  if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2)) {
+  if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2, err)) {
 #else
-  if (verifyOut(output0, output1, out, tol, M, N, TEST_TYPE, orient, inc)) {
+  if (verifyOut(output0, output1, out, tol, M, N, TEST_TYPE, orient, inc, err)) {
 #endif
     return 1;
   }
@@ -903,6 +907,9 @@ int main(int argc, char **argv)
   FLOAT alpha = TEST_ALPHA;
   FLOAT beta = TEST_BETA;
   BLASLONG inc = TEST_INC;
+#if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
+  FLOAT err = 0;
+#endif
   int all = 0;
 
 #ifdef RVV_256
@@ -997,14 +1004,13 @@ int main(int argc, char **argv)
 
 #ifdef TEST_SET_SEED
   const char *openblas_str = getenv("OPENBLAS_SEED");
-  unsigned int openblas_seed;
   if (openblas_str) {
     openblas_seed = atoi(openblas_str);
   } else {
     openblas_seed = (unsigned int)(get_rvv_timer());
   }
-  rand_seed(openblas_seed);
 #endif
+  rand_seed(openblas_seed);
 
   func *gen_ptr = func_ptr(TEST_GENERIC, orient, orient2);
   func *test_ptr = func_ptr(test, orient, orient2);
@@ -1189,7 +1195,7 @@ again:
         memset_zero(output_matrix1, MIN(N0, SET_N) * sizeof(FLOAT), false);
 #endif
 #ifdef FASTER_GENERIC_C
-	if (test >= TEST_GENERIC) {
+        if (test >= TEST_GENERIC) {
 #else
         if (test == TEST_RVV) {
 #endif
@@ -1269,9 +1275,9 @@ again:
 
 #if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
 #ifdef TEST_MATRIX
-    if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha)) {
+    if (verify(test, orient, orient2, M0, N0, K, input_matrix0, input_matrix1, output_matrix0, output_matrix1, alpha, &err)) {
 #else
-    if (verify(test, orient, orient2, M0, N0, N0, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input, inc)) {
+    if (verify(test, orient, orient2, M0, N0, N0, input_matrix1, input_vector1, output0, output1, output2, alpha, beta, input, inc, &err)) {
 #endif
       return 1;
     }
@@ -1306,8 +1312,8 @@ again:
 
 #if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
   if (all) {
-    FLOAT tol = (FLOAT)(MAX(M, N) * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
-    printf("All %s tests successful from %4d to %4ld (%4ld %8.6f)\n\n", (all == 2) ? "rectangular" : "square", 1, M, N, tol);
+    FLOAT tol = (FLOAT)(K * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+    printf("All %s tests successful from %4d to %4ld (%4ld - %8.6f %8.6f - %10u)\n\n", (all == 2) ? "rectangular" : "square", 1, M, N, err, tol, openblas_seed);
   }
 #endif
 
