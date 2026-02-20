@@ -53,7 +53,7 @@ Derived:
 static vfloat32m1_t FORCEINLINE A_UNROLL(const BLASLONG M, const BLASLONG M2, const BLASLONG S, FLOAT** A1, FLOAT** A2, FLOAT** A3, vbool32_t mask1, vbool32_t mask2)
 {
     vfloat32m1_t A0 = __riscv_vle32_v_f32m1(*A1, M2);
-    if ((S == 1) || (M == 1) || (M == 2) || (M == 4) || (M == 8)) {
+    if (S == 1) {
         *A1 += M;
     } else {
         A0 = __riscv_vle32_v_f32m1_tumu(mask1, A0, *A2, M2);
