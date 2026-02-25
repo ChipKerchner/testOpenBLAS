@@ -324,7 +324,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
     } else {
         float B0;
         B0 = B[0];
-        B += 1;
+        B += N;
 
         float r0, r1, r2, r3, r4, r5, r6, r7;
         float r8, r9, rA, rB, rC, rD, rE;
@@ -377,7 +377,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 
         for (BLASLONG k = 1; k < K; k++) {
             B0 = B[0];
-            B += 1;
+            B += N;
 
             if (M & 8) {
                 r0 += B0 * A0[0];
@@ -1523,6 +1523,8 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
         }
 
 
+//#ifndef GEMM_RIGHT_EDGE
+#if 1
         if( M & 8 ) {
             gvl = __riscv_vsetvl_e32m1(8);
 
@@ -1653,6 +1655,12 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             C[ci+1*ldc+0] += alpha * result1;
             m_top+=1;
         }
+#else
+        if (m_edge) {
+            M_TAIL(K, m_edge, 2, S, alpha, &A[m_top*K], &B[(n_top*K)+0], &C[(n_top+0)*ldc+m_top], ldc);
+            M_TAIL(K, m_edge, 2, S, alpha, &A[m_top*K], &B[(n_top*K)+1], &C[(n_top+1)*ldc+m_top], ldc);
+        }
+#endif
 
         n_top += 2;
     }
