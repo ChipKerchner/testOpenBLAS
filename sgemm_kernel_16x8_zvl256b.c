@@ -1578,8 +1578,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
         }
 
 
-//#ifndef GEMM_RIGHT_EDGE
-#if 0
+#ifndef GEMM_RIGHT_EDGE
         if( M & 8 ) {
             gvl = __riscv_vsetvl_e32m1(8);
 
