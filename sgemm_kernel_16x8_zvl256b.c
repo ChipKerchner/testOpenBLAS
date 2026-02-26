@@ -40,8 +40,8 @@ Derived:
 
 #include "common.h"
 
-//#define GEMM_RIGHT_EDGE    // One pass for right edge - unpacking A
-//#define GEMM_BOTTOM_EDGE   // One pass for bottom edge - unrolling K
+//#define GEMM_RIGHT_EDGE    // One pass for right edge - invert A & B - transpose at end
+//#define GEMM_BOTTOM_EDGE   // One pass for bottom edge - unrolling K (doesn't work yet)
 //#define USE_LMUL2          // Less operations and pointers - but slower (compiler issue)
 
 #ifdef GEMM_RIGHT_EDGE
