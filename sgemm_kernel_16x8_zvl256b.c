@@ -341,60 +341,48 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             A0 += 8;
 #endif
         }
-#ifdef GEMM_NEW_PACKING
         if (M & 4) {
+#ifdef GEMM_NEW_PACKING
             resultA = __riscv_vle32_v_f32m1(A0 + (M & 8), 8);
+#else
+            resultA = __riscv_vle32_v_f32m1(A1, 8);
+            A1 += 4;
+#endif
             result8 = __riscv_vfmul_vf_f32m1(resultA, B0, 8);
             if (N == 2) {
                 result9 = __riscv_vfmul_vf_f32m1(resultA, B1, 8);
             }
         }
         if (M & 2) {
+#ifdef GEMM_NEW_PACKING
             a0 = A0[0 + (M & 0xC)];
             a1 = A0[1 + (M & 0xC)];
-            rC = B0 * a0;
-            rD = B0 * a1;
-            if (N == 2) {
-                r8 = B1 * a0;
-                r9 = B1 * a1;
-            }
-        }
-        if (M & 1) {
-            a2 = A0[0 + (M & 0xE)];
-            rE = B0 * a2;
-            if (N == 2) {
-                rA = B1 * a2;
-            }
-        }
-        A0 += M;
 #else
-        if (M & 4) {
-            resultA = __riscv_vle32_v_f32m1(A1, 8);
-            result8 = __riscv_vfmul_vf_f32m1(resultA, B0, 8);
-            if (N == 2) {
-                result9 = __riscv_vfmul_vf_f32m1(resultA, B1, 8);
-            }
-            A1 += 4;
-        }
-        if (M & 2) {
             a0 = A2[0];
             a1 = A2[1];
+            A2 += 2;
+#endif
             rC = B0 * a0;
             rD = B0 * a1;
             if (N == 2) {
                 r8 = B1 * a0;
                 r9 = B1 * a1;
             }
-            A2 += 2;
         }
         if (M & 1) {
+#ifdef GEMM_NEW_PACKING
+            a2 = A0[0 + (M & 0xE)];
+#else
             a2 = A3[0];
+            A3 += 1;
+#endif
             rE = B0 * a2;
             if (N == 2) {
                 rA = B1 * a2;
             }
-            A3 += 1;
         }
+#ifdef GEMM_NEW_PACKING
+        A0 += M;
 #endif
 
         for (BLASLONG k = 1; k < K; k++) {
@@ -414,60 +402,48 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 A0 += 8;
 #endif
             }
-#ifdef GEMM_NEW_PACKING
             if (M & 4) {
+#ifdef GEMM_NEW_PACKING
                 resultA = __riscv_vle32_v_f32m1(A0 + (M & 8), 8);
+#else
+                resultA = __riscv_vle32_v_f32m1(A1, 8);
+                A1 += 4;
+#endif
                 result8 = __riscv_vfmacc_vf_f32m1(result8, B0, resultA, 8);
                 if (N == 2) {
                     result9 = __riscv_vfmacc_vf_f32m1(result9, B1, resultA, 8);
                 }
             }
             if (M & 2) {
+#ifdef GEMM_NEW_PACKING
                 a0 = A0[0 + (M & 0xC)];
                 a1 = A0[1 + (M & 0xC)];
-                rC += B0 * a0;
-                rD += B0 * a1;
-                if (N == 2) {
-                    r8 += B1 * a0;
-                    r9 += B1 * a1;
-                }
-            }
-            if (M & 1) {
-                a2 = A0[0 + (M & 0xE)];
-                rE += B0 * a2;
-                if (N == 2) {
-                    rA += B1 * a2;
-                }
-            }
-            A0 += M;
 #else
-            if (M & 4) {
-                resultA = __riscv_vle32_v_f32m1(A1, 8);
-                result8 = __riscv_vfmacc_vf_f32m1(result8, B0, resultA, 8);
-                if (N == 2) {
-                    result9 = __riscv_vfmacc_vf_f32m1(result9, B1, resultA, 8);
-                }
-                A1 += 4;
-            }
-            if (M & 2) {
                 a0 = A2[0];
                 a1 = A2[1];
+                A2 += 2;
+#endif
                 rC += B0 * a0;
                 rD += B0 * a1;
                 if (N == 2) {
                     r8 += B1 * a0;
                     r9 += B1 * a1;
                 }
-                A2 += 2;
             }
             if (M & 1) {
+#ifdef GEMM_NEW_PACKING
+                a2 = A0[0 + (M & 0xE)];
+#else
                 a2 = A3[0];
+                A3 += 1;
+#endif
                 rE += B0 * a2;
                 if (N == 2) {
                     rA += B1 * a2;
                 }
-                A3 += 1;
             }
+#ifdef GEMM_NEW_PACKING
+            A0 += M;
 #endif
         }
 
