@@ -609,9 +609,11 @@ static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, const BLASLON
 #endif
 
 #ifdef GEMM_BOTTOM_EDGE
-static void FORCEINLINE N_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+static void FORCEINLINE NM_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
     BLASLONG gvl = __riscv_vsetvl_e32m1(8);
+    BLASLONG n_top = 0;
+    BLASLONG ai = 0;
 
     for (BLASLONG i=0; i<M/16; i+=1) {
         BLASLONG bi=n_top*K;
@@ -1162,6 +1164,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
 
     // -- tails for N=4
 
+#if !defined(GEMM_BOTTOM_EDGE) || !defined(GEMM_RIGHT_EDGE)
     if( N & 4 ) {
 #ifdef USE_LMUL2
         gvl = __riscv_vsetvl_e32m2(16);
@@ -1170,7 +1173,6 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
 #endif
         m_top = 0;
 
-#ifndef GEMM_BOTTOM_EDGE
         for (BLASLONG i=0; i<M/16; i+=1) {
             BLASLONG ai=m_top*K;
             BLASLONG bi=n_top*K;
@@ -1290,9 +1292,6 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
 #endif
             m_top += 16;
         }
-#else
-        N_TAIL(K, M, N, A, B, C, ldc);
-#endif
 
 
 #ifndef GEMM_RIGHT_EDGE
@@ -1911,6 +1910,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
 
         n_top += 1;
     }
+#else
+    NM_TAIL(K, M, N, alpha, A, B, C, ldc);
+#endif
 
     return 0;
 }
