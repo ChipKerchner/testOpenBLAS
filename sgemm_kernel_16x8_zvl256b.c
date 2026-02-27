@@ -58,9 +58,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
     if (N == 8) {
         const bool S2 = (S && (M == 8));
         vfloat32m1_t A4, B0;
-        if (S2) {
-            A4 = __riscv_vle32_v_f32m1(A0, N);
-        } else {
+        if (!S2) {
             B0 = __riscv_vle32_v_f32m1(B, N);
             B += N;
         }
@@ -69,6 +67,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32m1_t result8, result9, resultA, resultB, resultC, resultD, resultE;
         if (M & 8) {
             if (S2) {
+                A4 = __riscv_vle32_v_f32m1(A0, N);
                 result0 = __riscv_vfmul_vf_f32m1(A4, B[0], N);
                 result1 = __riscv_vfmul_vf_f32m1(A4, B[1], N);
                 result2 = __riscv_vfmul_vf_f32m1(A4, B[2], N);
@@ -127,15 +126,14 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 #endif
 
         for (BLASLONG k = 1; k < K; k++) {
-            if (S2) {
-                A4 = __riscv_vle32_v_f32m1(A0, N);
-            } else {
+            if (!S2) {
                 B0 = __riscv_vle32_v_f32m1(B, N);
                 B += N;
             }
 
             if (M & 8) {
                 if (S2) {
+                    A4 = __riscv_vle32_v_f32m1(A0, N);
                     result0 = __riscv_vfmacc_vf_f32m1(result0, B[0], A4, N);
                     result1 = __riscv_vfmacc_vf_f32m1(result1, B[1], A4, N);
                     result2 = __riscv_vfmacc_vf_f32m1(result2, B[2], A4, N);
@@ -366,9 +364,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         const bool S2 = (S && (M == 8));
         vfloat32m1_t A4;
         vfloat32mf2_t B0;
-        if (S2) {
-            A4 = __riscv_vle32_v_f32m1(A0, N);
-        } else {
+        if (!S2) {
             B0 = __riscv_vle32_v_f32mf2(B, N);
             B += N;
         }
@@ -378,6 +374,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32m1_t result00, result01, result02, result03;
         if (M & 8) {
              if (S2) {
+                A4 = __riscv_vle32_v_f32m1(A0, 8);
                 result00 = __riscv_vfmul_vf_f32m1(A4, B[0], 8);
                 result01 = __riscv_vfmul_vf_f32m1(A4, B[1], 8);
                 result02 = __riscv_vfmul_vf_f32m1(A4, B[2], 8);
@@ -432,15 +429,14 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 #endif
 
         for (BLASLONG k = 1; k < K; k++) {
-            if (S2) {
-                A4 = __riscv_vle32_v_f32m1(A0, N);
-            } else {
+            if (!S2) {
                 B0 = __riscv_vle32_v_f32mf2(B, N);
                 B += N;
             }
 
             if (M & 8) {
                 if (S2) {
+                    A4 = __riscv_vle32_v_f32m1(A0, 8);
                     result00 = __riscv_vfmacc_vf_f32m1(result00, B[0], A4, 8);
                     result01 = __riscv_vfmacc_vf_f32m1(result01, B[1], A4, 8);
                     result02 = __riscv_vfmacc_vf_f32m1(result02, B[2], A4, 8);
