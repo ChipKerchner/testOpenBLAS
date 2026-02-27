@@ -670,7 +670,10 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         B += N;
 
         vfloat32m1_t result0, result1, result2, result3, result8, result9, resultA, resultB;
-        float r8 = 0, r9 = 0, rA = 0, rC, rD, rE, a0, a1, a2;
+        float r8, r9, rA, rC, rD, rE, a0, a1, a2;
+        if ((N & 2) == 0) {
+            r8 = r9 = rA = 0;
+        }
         if (M & 8) {
             result2 = __riscv_vle32_v_f32m1(A0, 8);
             result0 = __riscv_vfmul_vf_f32m1(result2, B0, 8);
