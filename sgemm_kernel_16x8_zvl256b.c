@@ -60,9 +60,6 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32m1_t A4, B0;
         if (S2) {
             A4 = __riscv_vle32_v_f32m1(A0, N);
-#ifndef GEMM_NEW_PACKING
-            A0 += 8;
-#endif
         } else {
             B0 = __riscv_vle32_v_f32m1(B, N);
             B += N;
@@ -90,10 +87,10 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 result5 = __riscv_vfmul_vf_f32m1(B0, A0[5], N);
                 result6 = __riscv_vfmul_vf_f32m1(B0, A0[6], N);
                 result7 = __riscv_vfmul_vf_f32m1(B0, A0[7], N);
-#ifndef GEMM_NEW_PACKING
-                A0 += 8;
-#endif
             }
+#ifndef GEMM_NEW_PACKING
+            A0 += 8;
+#endif
         }
 #ifdef GEMM_NEW_PACKING
         if (M & 4) {
@@ -132,9 +129,6 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         for (BLASLONG k = 1; k < K; k++) {
             if (S2) {
                 A4 = __riscv_vle32_v_f32m1(A0, N);
-#ifndef GEMM_NEW_PACKING
-                A0 += 8;
-#endif
             } else {
                 B0 = __riscv_vle32_v_f32m1(B, N);
                 B += N;
@@ -160,10 +154,10 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                     result5 = __riscv_vfmacc_vf_f32m1(result5, A0[5], B0, N);
                     result6 = __riscv_vfmacc_vf_f32m1(result6, A0[6], B0, N);
                     result7 = __riscv_vfmacc_vf_f32m1(result7, A0[7], B0, N);
-#ifndef GEMM_NEW_PACKING
-                    A0 += 8;
-#endif
                 }
+#ifndef GEMM_NEW_PACKING
+                A0 += 8;
+#endif
             }
 #ifdef GEMM_NEW_PACKING
             if (M & 4) {
@@ -374,9 +368,6 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32mf2_t B0;
         if (S2) {
             A4 = __riscv_vle32_v_f32m1(A0, N);
-#ifndef GEMM_NEW_PACKING
-            A0 += 8;
-#endif
         } else {
             B0 = __riscv_vle32_v_f32mf2(B, N);
             B += N;
@@ -401,10 +392,10 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 result5 = __riscv_vfmul_vf_f32mf2(B0, A0[5], N);
                 result6 = __riscv_vfmul_vf_f32mf2(B0, A0[6], N);
                 result7 = __riscv_vfmul_vf_f32mf2(B0, A0[7], N);
-#ifndef GEMM_NEW_PACKING
-                A0 += 8;
-#endif
             }
+#ifndef GEMM_NEW_PACKING
+            A0 += 8;
+#endif
         }
 #ifdef GEMM_NEW_PACKING
         if (M & 4) {
@@ -443,9 +434,6 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         for (BLASLONG k = 1; k < K; k++) {
             if (S2) {
                 A4 = __riscv_vle32_v_f32m1(A0, N);
-#ifndef GEMM_NEW_PACKING
-                A0 += 8;
-#endif
             } else {
                 B0 = __riscv_vle32_v_f32mf2(B, N);
                 B += N;
@@ -467,10 +455,10 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                     result5 = __riscv_vfmacc_vf_f32mf2(result5, A0[5], B0, N);
                     result6 = __riscv_vfmacc_vf_f32mf2(result6, A0[6], B0, N);
                     result7 = __riscv_vfmacc_vf_f32mf2(result7, A0[7], B0, N);
-#ifndef GEMM_NEW_PACKING
-                    A0 += 8;
-#endif
                 }
+#ifndef GEMM_NEW_PACKING
+                A0 += 8;
+#endif
             }
 #ifdef GEMM_NEW_PACKING
             if (M & 4) {
