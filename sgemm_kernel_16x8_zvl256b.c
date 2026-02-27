@@ -360,8 +360,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 __riscv_vssseg7e32_v_f32m1x7(C + (M & 8), ldc * sizeof(float), c17, N);
             }
         }
-    }
-    if (N & 4) {
+    } else if (N & 4) {
         const bool S2 = (S && (M == 8));
         vfloat32m1_t A4;
         vfloat32mf2_t B0;
@@ -660,8 +659,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 __riscv_vssseg7e32_v_f32mf2x7(C + (M & 8), ldc * sizeof(float), c17, N);
             }
         }
-    }
-    if (N & 3) {
+    } else {
         float B0, B1;
         B0 = B[0];
         if (N & 2) {
@@ -945,115 +943,182 @@ static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, const bool S,
 #ifdef GEMM_BOTTOM_EDGE
 static void FORCEINLINE NM_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
-    FLOAT *B4 = B;
-
     for (BLASLONG i = 0; i < (M / 16); i++) {
-        float B0, B1, B2, B3;
-        B = B4;
-        B0 = B[0];
-        if (N > 1) {
+        float B0, B1, B2, B3, B4, B5, B6;
+        FLOAT *B00, *B01, *B02;
+        if (N & 4) {
+            B0 = B[0];
             B1 = B[1];
-            if (N > 2) {
-                B2 = B[2];
-                B3 = B[3];
-            }
+            B2 = B[2];
+            B3 = B[3];
+            B00 = B + 4;
         }
-        B += N;
+        if (N & 2) {
+            B4 = B[0];
+            B5 = B[1];
+            B01 = B + 2;
+        }
+        if (N & 1) {
+            B6 = B[0];
+            B02 = B + 1;
+        }
 
         vfloat32m1_t A0 = __riscv_vle32_v_f32m1(A + 0, 8);
         vfloat32m1_t A1 = __riscv_vle32_v_f32m1(A + 8, 8);
         A += 16;
 
         vfloat32m1_t result0, result1, result2, result3, result4, result5, result6, result7;
-        result0 = __riscv_vfmul_vf_f32m1(A0, B0, 8);
-        result1 = __riscv_vfmul_vf_f32m1(A1, B0, 8);
-        if (N > 1) {
+        vfloat32m1_t result8, result9, resultA, resultB, resultC, resultD;
+        if (N & 4) {
+            result0 = __riscv_vfmul_vf_f32m1(A0, B0, 8);
+            result1 = __riscv_vfmul_vf_f32m1(A1, B0, 8);
             result2 = __riscv_vfmul_vf_f32m1(A0, B1, 8);
             result3 = __riscv_vfmul_vf_f32m1(A1, B1, 8);
-            if (N > 2) {
-                result4 = __riscv_vfmul_vf_f32m1(A0, B2, 8);
-                result5 = __riscv_vfmul_vf_f32m1(A1, B2, 8);
-                result6 = __riscv_vfmul_vf_f32m1(A0, B3, 8);
-                result7 = __riscv_vfmul_vf_f32m1(A1, B3, 8);
-            }
+            result4 = __riscv_vfmul_vf_f32m1(A0, B2, 8);
+            result5 = __riscv_vfmul_vf_f32m1(A1, B2, 8);
+            result6 = __riscv_vfmul_vf_f32m1(A0, B3, 8);
+            result7 = __riscv_vfmul_vf_f32m1(A1, B3, 8);
+        }
+        if (N & 2) {
+            result8 = __riscv_vfmul_vf_f32m1(A0, B4, 8);
+            result9 = __riscv_vfmul_vf_f32m1(A1, B4, 8);
+            resultA = __riscv_vfmul_vf_f32m1(A0, B5, 8);
+            resultB = __riscv_vfmul_vf_f32m1(A1, B5, 8);
+        }
+        if (N & 1) {
+            resultC = __riscv_vfmul_vf_f32m1(A0, B6, 8);
+            resultD = __riscv_vfmul_vf_f32m1(A1, B6, 8);
         }
 
         for(BLASLONG k = 1; k < K; k++) {
-            B0 = B[0];
-            if (N > 1) {
-                B1 = B[1];
-                if (N > 2) {
-                    B2 = B[2];
-                    B3 = B[3];
-                }
+            if (N & 4) {
+                B0 = B00[0];
+                B1 = B00[1];
+                B2 = B00[2];
+                B3 = B00[3];
+                B00 += 4;
             }
-            B += N;
+            if (N & 2) {
+                B4 = B01[0];
+                B5 = B01[1];
+                B01 += 2;
+            }
+            if (N & 1) {
+                B6 = B02[0];
+                B02 += 1;
+            }
 
             A0 = __riscv_vle32_v_f32m1(A + 0, 8);
             A1 = __riscv_vle32_v_f32m1(A + 8, 8);
             A += 16;
 
-            result0 = __riscv_vfmacc_vf_f32m1(result0, B0, A0, 8);
-            result1 = __riscv_vfmacc_vf_f32m1(result1, B0, A1, 8);
-            if (N > 1) {
+            if (N & 4) {
+                result0 = __riscv_vfmacc_vf_f32m1(result0, B0, A0, 8);
+                result1 = __riscv_vfmacc_vf_f32m1(result1, B0, A1, 8);
                 result2 = __riscv_vfmacc_vf_f32m1(result2, B1, A0, 8);
                 result3 = __riscv_vfmacc_vf_f32m1(result3, B1, A1, 8);
-                if (N > 2) {
-                    result4 = __riscv_vfmacc_vf_f32m1(result4, B2, A0, 8);
-                    result5 = __riscv_vfmacc_vf_f32m1(result5, B2, A1, 8);
-                    result6 = __riscv_vfmacc_vf_f32m1(result6, B3, A0, 8);
-                    result7 = __riscv_vfmacc_vf_f32m1(result7, B3, A1, 8);
-                }
+                result4 = __riscv_vfmacc_vf_f32m1(result4, B2, A0, 8);
+                result5 = __riscv_vfmacc_vf_f32m1(result5, B2, A1, 8);
+                result6 = __riscv_vfmacc_vf_f32m1(result6, B3, A0, 8);
+                result7 = __riscv_vfmacc_vf_f32m1(result7, B3, A1, 8);
+            }
+            if (N & 2) {
+                result8 = __riscv_vfmacc_vf_f32m1(result8, B4, A0, 8);
+                result9 = __riscv_vfmacc_vf_f32m1(result9, B4, A1, 8);
+                resultA = __riscv_vfmacc_vf_f32m1(resultA, B5, A0, 8);
+                resultB = __riscv_vfmacc_vf_f32m1(resultB, B5, A1, 8);
+            }
+            if (N & 1) {
+                resultC = __riscv_vfmacc_vf_f32m1(resultC, B6, A0, 8);
+                resultD = __riscv_vfmacc_vf_f32m1(resultD, B6, A1, 8);
             }
         }
 
         FLOAT *C0 = C;
         vfloat32m1_t c0, c1, c2, c3, c4, c5, c6, c7;
-        c0 = __riscv_vle32_v_f32m1(C + 0, 8); 
-        c1 = __riscv_vle32_v_f32m1(C + 8, 8);
-        if (N > 1) {
+        vfloat32m1_t c8, c9, cA, cB, cC, cD;
+        if (N & 4) {
+            c0 = __riscv_vle32_v_f32m1(C + 0, 8); 
+            c1 = __riscv_vle32_v_f32m1(C + 8, 8);
             C += ldc;
             c2 = __riscv_vle32_v_f32m1(C + 0, 8);
             c3 = __riscv_vle32_v_f32m1(C + 8, 8);
-            if (N > 2) {
+            C += ldc;
+            c4 = __riscv_vle32_v_f32m1(C + 0, 8);
+            c5 = __riscv_vle32_v_f32m1(C + 8, 8); 
+            C += ldc;
+            c6 = __riscv_vle32_v_f32m1(C + 0, 8);
+            c7 = __riscv_vle32_v_f32m1(C + 8, 8);
+            if (N & 3) {
                 C += ldc;
-                c4 = __riscv_vle32_v_f32m1(C + 0, 8);
-                c5 = __riscv_vle32_v_f32m1(C + 8, 8); 
-                C += ldc;
-                c6 = __riscv_vle32_v_f32m1(C + 0, 8);
-                c7 = __riscv_vle32_v_f32m1(C + 8, 8);
             }
         }
+        if (N & 2) {
+            c8 = __riscv_vle32_v_f32m1(C + 0, 8);
+            c9 = __riscv_vle32_v_f32m1(C + 8, 8);
+            C += ldc;
+            cA = __riscv_vle32_v_f32m1(C + 0, 8);
+            cB = __riscv_vle32_v_f32m1(C + 8, 8);
+            if (N & 1) {
+                C += ldc;
+            }
+        }
+        if (N & 1) {
+            cC = __riscv_vle32_v_f32m1(C + 0, 8);
+            cD = __riscv_vle32_v_f32m1(C + 8, 8);
+        }
 
-        c0 = __riscv_vfmacc_vf_f32m1(c0, alpha, result0, 8);
-        c1 = __riscv_vfmacc_vf_f32m1(c1, alpha, result1, 8);
-        if (N > 1) {
+        if (N & 4) {
+            c0 = __riscv_vfmacc_vf_f32m1(c0, alpha, result0, 8);
+            c1 = __riscv_vfmacc_vf_f32m1(c1, alpha, result1, 8);
             c2 = __riscv_vfmacc_vf_f32m1(c2, alpha, result2, 8);
             c3 = __riscv_vfmacc_vf_f32m1(c3, alpha, result3, 8);
-            if (N > 2) {
-                c4 = __riscv_vfmacc_vf_f32m1(c4, alpha, result4, 8);
-                c5 = __riscv_vfmacc_vf_f32m1(c5, alpha, result5, 8);
-                c6 = __riscv_vfmacc_vf_f32m1(c6, alpha, result6, 8);
-                c7 = __riscv_vfmacc_vf_f32m1(c7, alpha, result7, 8);
-            }
-
-            C = C0;
+            c4 = __riscv_vfmacc_vf_f32m1(c4, alpha, result4, 8);
+            c5 = __riscv_vfmacc_vf_f32m1(c5, alpha, result5, 8);
+            c6 = __riscv_vfmacc_vf_f32m1(c6, alpha, result6, 8);
+            c7 = __riscv_vfmacc_vf_f32m1(c7, alpha, result7, 8);
+        }
+        if (N & 2) {
+            c8 = __riscv_vfmacc_vf_f32m1(c8, alpha, result8, 8);
+            c9 = __riscv_vfmacc_vf_f32m1(c9, alpha, result9, 8);
+            cA = __riscv_vfmacc_vf_f32m1(cA, alpha, resultA, 8);
+            cB = __riscv_vfmacc_vf_f32m1(cB, alpha, resultB, 8);
+        }
+        if (N & 1) {
+            cC = __riscv_vfmacc_vf_f32m1(cC, alpha, resultC, 8);
+            cD = __riscv_vfmacc_vf_f32m1(cD, alpha, resultD, 8);
         }
 
-        __riscv_vse32_v_f32m1(C + 0, c0, 8);
-        __riscv_vse32_v_f32m1(C + 8, c1, 8);
-        if (N > 1) {
+        C = C0;
+        if (N & 4) {
+            __riscv_vse32_v_f32m1(C + 0, c0, 8);
+            __riscv_vse32_v_f32m1(C + 8, c1, 8);
             C += ldc;
             __riscv_vse32_v_f32m1(C + 0, c2, 8);
             __riscv_vse32_v_f32m1(C + 8, c3, 8);
-            if (N > 2) {
+            C += ldc;
+            __riscv_vse32_v_f32m1(C + 0, c4, 8);
+            __riscv_vse32_v_f32m1(C + 8, c5, 8);
+            C += ldc;
+            __riscv_vse32_v_f32m1(C + 0, c6, 8);
+            __riscv_vse32_v_f32m1(C + 8, c7, 8);
+            if (N & 3) {
                 C += ldc;
-                __riscv_vse32_v_f32m1(C + 0, c4, 8);
-                __riscv_vse32_v_f32m1(C + 8, c5, 8);
-                C += ldc;
-                __riscv_vse32_v_f32m1(C + 0, c6, 8);
-                __riscv_vse32_v_f32m1(C + 8, c7, 8);
             }
+        }
+        if (N & 2) {
+            __riscv_vse32_v_f32m1(C + 0, c8, 8);
+            __riscv_vse32_v_f32m1(C + 8, c9, 8);
+            C += ldc;
+            __riscv_vse32_v_f32m1(C + 0, cA, 8);
+            __riscv_vse32_v_f32m1(C + 8, cB, 8);
+            if (N & 1) {
+                C += ldc;
+            }
+        }
+        if (N & 1) {
+            __riscv_vse32_v_f32m1(C + 0, cC, 8);
+            __riscv_vse32_v_f32m1(C + 8, cD, 8);
         }
 
         C = C0 + 16;
