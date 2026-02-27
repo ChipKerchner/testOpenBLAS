@@ -55,7 +55,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, const bool S, FLOAT alpha, FLOAT* A0, FLOAT* A1, FLOAT* A2, FLOAT* A3, FLOAT* B, FLOAT* C, BLASLONG ldc)
 #endif
 {
-    if (N == 8) {
+    if (N & 8) {
         const bool S2 = (S && (M == 8));
         vfloat32m1_t A4, B0;
         if (!S2) {
@@ -360,7 +360,8 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 __riscv_vssseg7e32_v_f32m1x7(C + (M & 8), ldc * sizeof(float), c17, N);
             }
         }
-    } else if (N == 4) {
+    }
+    if (N & 4) {
         const bool S2 = (S && (M == 8));
         vfloat32m1_t A4;
         vfloat32mf2_t B0;
@@ -659,20 +660,21 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 __riscv_vssseg7e32_v_f32mf2x7(C + (M & 8), ldc * sizeof(float), c17, N);
             }
         }
-    } else {
+    }
+    if (N & 3) {
         float B0, B1;
         B0 = B[0];
-        if (N == 2) {
+        if (N & 2) {
             B1 = B[1];
         }
         B += N;
 
         vfloat32m1_t result0, result1, result2, result3, result8, result9, resultA, resultB;
-        float r8, r9, rA, rC, rD, rE, a0, a1, a2;
+        float r8 = 0, r9 = 0, rA = 0, rC, rD, rE, a0, a1, a2;
         if (M & 8) {
             result2 = __riscv_vle32_v_f32m1(A0, 8);
             result0 = __riscv_vfmul_vf_f32m1(result2, B0, 8);
-            if (N == 2) {
+            if (N & 2) {
                 result1 = __riscv_vfmul_vf_f32m1(result2, B1, 8);
             }
 #ifndef GEMM_NEW_PACKING
@@ -687,7 +689,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             A1 += 4;
 #endif
             result8 = __riscv_vfmul_vf_f32m1(resultA, B0, 8);
-            if (N == 2) {
+            if (N & 2) {
                 result9 = __riscv_vfmul_vf_f32m1(resultA, B1, 8);
             }
         }
@@ -702,7 +704,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 #endif
             rC = B0 * a0;
             rD = B0 * a1;
-            if (N == 2) {
+            if (N & 2) {
                 r8 = B1 * a0;
                 r9 = B1 * a1;
             }
@@ -715,7 +717,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             A3 += 1;
 #endif
             rE = B0 * a2;
-            if (N == 2) {
+            if (N & 2) {
                 rA = B1 * a2;
             }
         }
@@ -725,7 +727,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 
         for (BLASLONG k = 1; k < K; k++) {
             B0 = B[0];
-            if (N == 2) {
+            if (N & 2) {
                 B1 = B[1];
             }
             B += N;
@@ -733,7 +735,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             if (M & 8) {
                 result2 = __riscv_vle32_v_f32m1(A0, 8);
                 result0 = __riscv_vfmacc_vf_f32m1(result0, B0, result2, 8);
-                if (N == 2) {
+                if (N & 2) {
                     result1 = __riscv_vfmacc_vf_f32m1(result1, B1, result2, 8);
                 }
 #ifndef GEMM_NEW_PACKING
@@ -748,7 +750,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 A1 += 4;
 #endif
                 result8 = __riscv_vfmacc_vf_f32m1(result8, B0, resultA, 8);
-                if (N == 2) {
+                if (N & 2) {
                     result9 = __riscv_vfmacc_vf_f32m1(result9, B1, resultA, 8);
                 }
             }
@@ -763,7 +765,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 #endif
                 rC += B0 * a0;
                 rD += B0 * a1;
-                if (N == 2) {
+                if (N & 2) {
                     r8 += B1 * a0;
                     r9 += B1 * a1;
                 }
@@ -776,7 +778,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 A3 += 1;
 #endif
                 rE += B0 * a2;
-                if (N == 2) {
+                if (N & 2) {
                     rA += B1 * a2;
                 }
             }
@@ -789,7 +791,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             result2 = __riscv_vle32_v_f32m1(C, 8);
             result2 = __riscv_vfmacc_vf_f32m1(result2, alpha, result0, 8);
             __riscv_vse32_v_f32m1(C, result2, 8);
-            if (N == 2) {
+            if (N & 2) {
                 result3 = __riscv_vle32_v_f32m1(C + ldc, 8);
                 result3 = __riscv_vfmacc_vf_f32m1(result3, alpha, result1, 8);
                 __riscv_vse32_v_f32m1(C + ldc, result3, 8);
@@ -799,7 +801,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             resultA = __riscv_vle32_v_f32m1(C + (M & 8), 4);
             resultA = __riscv_vfmacc_vf_f32m1(resultA, alpha, result8, 4);
             __riscv_vse32_v_f32m1(C + (M & 8), resultA, 4);
-            if (N == 2) {
+            if (N & 2) {
                 resultB = __riscv_vle32_v_f32m1(C + (M & 8) + ldc, 4);
                 resultB = __riscv_vfmacc_vf_f32m1(resultB, alpha, result9, 4);
                 __riscv_vse32_v_f32m1(C + (M & 8) + ldc, resultB, 4);
@@ -808,14 +810,14 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         if (M & 2) {
             C[0 + (M & 0xC)] += alpha * rC;
             C[1 + (M & 0xC)] += alpha * rD;
-            if (N == 2) {
+            if (N & 2) {
                 C[0 + ldc + (M & 0xC)] += alpha * r8;
                 C[1 + ldc + (M & 0xC)] += alpha * r9;
             }
         }
         if (M & 1) {
             C[0 + (M & 0xE)] += alpha * rE;
-            if (N == 2) {
+            if (N & 2) {
                 C[0 + ldc + (M & 0xE)] += alpha * rA;
             }
         }
@@ -825,14 +827,29 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, const bool S, FLOAT alpha, FLOAT* A0, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
     FLOAT *A1, *A2, *A3;
+#ifndef GEMM_NEW_PACKING
     if (M & 4) {
         A1 = A0 + (K * (M & 0x8));
+    } else
+#endif
+    {
+        A1 = A0;
     }
+#ifndef GEMM_NEW_PACKING
     if (M & 2) {
         A2 = A0 + (K * (M & 0xC));
+    } else
+#endif
+    {
+        A2 = A0;
     }
+#ifndef GEMM_NEW_PACKING
     if (M & 1) {
         A3 = A0 + (K * (M & 0xE));
+    } else
+#endif
+    {
+        A3 = A0;
     }
     if (M & 8) {
         if (M & 4) {
