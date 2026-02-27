@@ -941,7 +941,7 @@ static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, const bool S,
 #endif
 
 #ifdef GEMM_BOTTOM_EDGE
-static void FORCEINLINE NM_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+static void FORCEINLINE N_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
     for (BLASLONG i = 0; i < (M / 16); i++) {
         float B0, B1, B2, B3, B4, B5, B6;
@@ -1125,18 +1125,63 @@ static void FORCEINLINE NM_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG
     }
 }
 
-static void NM_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+static void N_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
     if (N & 4) {
-        NM_TAIL_ONE(K, M, 4, alpha, A, B, C, ldc);
+        N_TAIL_ONE(K, M, 4, alpha, A, B, C, ldc);
     }
     if (N & 2) {
-        NM_TAIL_ONE(K, M, 2, alpha, A, B, C, ldc);
+        N_TAIL_ONE(K, M, 2, alpha, A, B, C, ldc);
     }
     if (N & 1) {
-        NM_TAIL_ONE(K, M, 1, alpha, A, B, C, ldc);
+        N_TAIL_ONE(K, M, 1, alpha, A, B, C, ldc);
     }
 }
+
+#ifdef GEMM_RIGHT_EDGE
+static void NM_TAIL(BLASLONG K, BLASLONG M, const BLASLONG m_edge, const BLASLONG N, const BLASLONG S, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+{
+    if (M / 16) {
+        FLOAT *B0 = B;
+        FLOAT *C0 = C;
+        if (N & 4) {
+            N_TAIL(K, M, 4, alpha, A, B0, C0, ldc);
+            B0 += (K * 4);
+            C0 += (ldc * 4);
+        }
+        if (N & 2) {
+            N_TAIL(K, M, 2, alpha, A, B0, C0, ldc);
+            B0 += (K * 2);
+            C0 += (ldc * 2);
+        }
+        if (N & 1) {
+            N_TAIL(K, M, 1, alpha, A, B0, C0, ldc);
+            B0 += (K * 1);
+            C0 += (ldc * 1);
+        }
+    }
+    if (m_edge) {
+        M &= -16;
+        C += M;
+        A += (M * K);
+        if (N & 4) {
+            M_TAIL(K, m_edge, 4, S, alpha, A, B, C, ldc);
+            B += (K * 4);
+            C += (ldc * 4);
+        }
+        if (N & 2) {
+            M_TAIL(K, m_edge, 2, S, alpha, A, B, C, ldc);
+            B += (K * 2);
+            C += (ldc * 2);
+        }
+        if (N & 1) {
+            M_TAIL(K, m_edge, 1, S, alpha, A, B, C, ldc);
+            B += (K * 1);
+            C += (ldc * 1);
+        }
+    }
+}
+#endif
 #endif
 
 int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
@@ -1644,7 +1689,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
     // -- tails for N=4
 
 //#if !defined(GEMM_BOTTOM_EDGE) || !defined(GEMM_RIGHT_EDGE)
-#if 1
+#if 0
     if( N & 4 ) {
 #ifndef GEMM_BOTTOM_EDGE
 #ifdef USE_LMUL2
@@ -1774,7 +1819,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             m_top += 16;
         }
 #else
-        NM_TAIL(K, M, 4, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
+        if (M / 16) {
+            N_TAIL(K, M, 4, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
+        }
         m_top = (M & -16);
 #endif
 
@@ -2062,7 +2109,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             m_top += 16;
         }
 #else
-        NM_TAIL(K, M, 2, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
+        if (M / 16) {
+            N_TAIL(K, M, 2, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
+        }
         m_top = (M & -16);
 #endif
 
@@ -2284,7 +2333,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             m_top += 16;
         }
 #else
-        NM_TAIL(K, M, 1, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
+        if (M / 16) {
+            N_TAIL(K, M, 1, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
+        }
         m_top = (M & -16);
 #endif
 
@@ -2407,7 +2458,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
         n_top += 1;
     }
 #else
-    NM_TAIL(K, M, N, alpha, A, B, C, ldc);
+    if (N & 7) {
+        NM_TAIL(K, M, m_edge, N, S, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
+    }
 #endif
 
     return 0;
