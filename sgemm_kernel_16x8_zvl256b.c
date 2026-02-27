@@ -50,13 +50,13 @@ Derived:
 #define FORCEINLINE      inline __attribute__((always_inline))
 
 #ifdef GEMM_NEW_PACKING
-static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, const BLASLONG S, FLOAT alpha, FLOAT* A0, FLOAT*, FLOAT*, FLOAT*, FLOAT* B, FLOAT* C, BLASLONG ldc)
+static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, const bool S, FLOAT alpha, FLOAT* A0, FLOAT*, FLOAT*, FLOAT*, FLOAT* B, FLOAT* C, BLASLONG ldc)
 #else
-static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, const BLASLONG S, FLOAT alpha, FLOAT* A0, FLOAT* A1, FLOAT* A2, FLOAT* A3, FLOAT* B, FLOAT* C, BLASLONG ldc)
+static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG N, const bool S, FLOAT alpha, FLOAT* A0, FLOAT* A1, FLOAT* A2, FLOAT* A3, FLOAT* B, FLOAT* C, BLASLONG ldc)
 #endif
 {
     if (N == 8) {
-        const BLASLONG S2 = (S && (M == 8)) ? 1 : 0;
+        const bool S2 = (S && (M == 8));
         vfloat32m1_t A4, B0;
         if (S2) {
             A4 = __riscv_vle32_v_f32m1(A0, N);
@@ -369,7 +369,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             }
         }
     } else if (N == 4) {
-        const BLASLONG S2 = (S && (M == 8)) ? 1 : 0;
+        const bool S2 = (S && (M == 8));
         vfloat32m1_t A4;
         vfloat32mf2_t B0;
         if (S2) {
@@ -838,7 +838,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
     }
 }
 
-static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, const BLASLONG S, FLOAT alpha, FLOAT* A0, FLOAT* B, FLOAT* C, BLASLONG ldc)
+static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, const bool S, FLOAT alpha, FLOAT* A0, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
     FLOAT *A1, *A2, *A3;
     if (M & 4) {
@@ -854,32 +854,32 @@ static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, const BLASLON
         if (M & 4) {
             if (M & 2) {
                 if (M & 1) {
-                    M_TAIL_ONE(K, 15, N, 0, alpha, A0, A1, A2, A3, B, C, ldc);
+                    M_TAIL_ONE(K, 15, N, false, alpha, A0, A1, A2, A3, B, C, ldc);
                 } else {
-                    M_TAIL_ONE(K, 14, N, 0, alpha, A0, A1, A2, A0, B, C, ldc);
+                    M_TAIL_ONE(K, 14, N, false, alpha, A0, A1, A2, A0, B, C, ldc);
                 }
             } else {
                 if (M & 1) {
-                    M_TAIL_ONE(K, 13, N, 0, alpha, A0, A1, A0, A3, B, C, ldc);
+                    M_TAIL_ONE(K, 13, N, false, alpha, A0, A1, A0, A3, B, C, ldc);
                 } else {
-                    M_TAIL_ONE(K, 12, N, 0, alpha, A0, A1, A0, A0, B, C, ldc);
+                    M_TAIL_ONE(K, 12, N, false, alpha, A0, A1, A0, A0, B, C, ldc);
                 }
             }
         } else {
             if (M & 2) {
                 if (M & 1) {
-                    M_TAIL_ONE(K, 11, N, 0, alpha, A0, A0, A2, A3, B, C, ldc);
+                    M_TAIL_ONE(K, 11, N, false, alpha, A0, A0, A2, A3, B, C, ldc);
                 } else {
-                    M_TAIL_ONE(K, 10, N, 0, alpha, A0, A0, A2, A0, B, C, ldc);
+                    M_TAIL_ONE(K, 10, N, false, alpha, A0, A0, A2, A0, B, C, ldc);
                 }
             } else {
                 if (M & 1) {
-                    M_TAIL_ONE(K,  9, N, 0, alpha, A0, A0, A0, A3, B, C, ldc);
+                    M_TAIL_ONE(K,  9, N, false, alpha, A0, A0, A0, A3, B, C, ldc);
                 } else {
                     if (S) {
-                        M_TAIL_ONE(K,  8, N, 1, alpha, A0, A0, A0, A0, B, C, ldc);
+                        M_TAIL_ONE(K,  8, N, true,  alpha, A0, A0, A0, A0, B, C, ldc);
                     } else {
-                        M_TAIL_ONE(K,  8, N, 0, alpha, A0, A0, A0, A0, B, C, ldc);
+                        M_TAIL_ONE(K,  8, N, false, alpha, A0, A0, A0, A0, B, C, ldc);
                     }
                 }
             }
@@ -888,51 +888,51 @@ static void M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, const BLASLON
         if (M & 2) {
             if (M & 1) {
                 if (S) {
-                    M_TAIL_ONE(K,  7, N, 1, alpha, A0, A1, A2, A3, B, C, ldc);
+                    M_TAIL_ONE(K,  7, N, true,  alpha, A0, A1, A2, A3, B, C, ldc);
                 } else {
-                    M_TAIL_ONE(K,  7, N, 0, alpha, A0, A1, A2, A3, B, C, ldc);
+                    M_TAIL_ONE(K,  7, N, false, alpha, A0, A1, A2, A3, B, C, ldc);
                 }
             } else {
                 if (S) {
-                    M_TAIL_ONE(K,  6, N, 1, alpha, A0, A1, A2, A0, B, C, ldc);
+                    M_TAIL_ONE(K,  6, N, true,  alpha, A0, A1, A2, A0, B, C, ldc);
                 } else {
-                    M_TAIL_ONE(K,  6, N, 0, alpha, A0, A1, A2, A0, B, C, ldc);
+                    M_TAIL_ONE(K,  6, N, false, alpha, A0, A1, A2, A0, B, C, ldc);
                 }
             }
         } else {
             if (M & 1) {
                 if (S) {
-                    M_TAIL_ONE(K,  5, N, 1, alpha, A0, A1, A0, A3, B, C, ldc);
+                    M_TAIL_ONE(K,  5, N, true,  alpha, A0, A1, A0, A3, B, C, ldc);
                 } else {
-                    M_TAIL_ONE(K,  5, N, 0, alpha, A0, A1, A0, A3, B, C, ldc);
+                    M_TAIL_ONE(K,  5, N, false, alpha, A0, A1, A0, A3, B, C, ldc);
                 }
             } else {
                 if (S) {
-                    M_TAIL_ONE(K,  4, N, 1, alpha, A0, A1, A0, A0, B, C, ldc);
+                    M_TAIL_ONE(K,  4, N, true, alpha, A0, A1, A0, A0, B, C, ldc);
                 } else {
-                    M_TAIL_ONE(K,  4, N, 0, alpha, A0, A1, A0, A0, B, C, ldc);
+                    M_TAIL_ONE(K,  4, N, false, alpha, A0, A1, A0, A0, B, C, ldc);
                 }
             }
         }
     } else if (M & 2) {
         if (M & 1) {
             if (S) {
-                M_TAIL_ONE(K,  3, N, 1, alpha, A0, A0, A2, A3, B, C, ldc);
+                M_TAIL_ONE(K,  3, N, true,  alpha, A0, A0, A2, A3, B, C, ldc);
             } else {
-                M_TAIL_ONE(K,  3, N, 0, alpha, A0, A0, A2, A3, B, C, ldc);
+                M_TAIL_ONE(K,  3, N, false, alpha, A0, A0, A2, A3, B, C, ldc);
             }
         } else {
             if (S) {
-                M_TAIL_ONE(K,  2, N, 1, alpha, A0, A0, A2, A0, B, C, ldc);
+                M_TAIL_ONE(K,  2, N, true,  alpha, A0, A0, A2, A0, B, C, ldc);
             } else {
-                M_TAIL_ONE(K,  2, N, 0, alpha, A0, A0, A2, A0, B, C, ldc);
+                M_TAIL_ONE(K,  2, N, false, alpha, A0, A0, A2, A0, B, C, ldc);
             }
         }
     } else if (M & 1) {
         if (S) {
-            M_TAIL_ONE(K,  1, N, 1, alpha, A0, A0, A0, A3, B, C, ldc);
+            M_TAIL_ONE(K,  1, N, true,  alpha, A0, A0, A0, A3, B, C, ldc);
         } else {
-            M_TAIL_ONE(K,  1, N, 0, alpha, A0, A0, A0, A3, B, C, ldc);
+            M_TAIL_ONE(K,  1, N, false, alpha, A0, A0, A0, A3, B, C, ldc);
         }
     }
 }
@@ -997,7 +997,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
     BLASLONG n_top = 0;
 #ifdef GEMM_RIGHT_EDGE
     const BLASLONG m_edge = M & 15;
-    const BLASLONG S = ((M == ldc) ? 1 : 0);
+    const bool S = (M == ldc);
 #endif
 
 
