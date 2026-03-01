@@ -822,55 +822,69 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 #endif
         }
 
+        FLOAT* C1, *C2;
+        if (N & 1) {
+            C1 = C + ((N & 2) * ldc);
+        } else {
+            C1 = C;
+        }
+        if (N & 2) {
+            C2 = C + ldc;
+        } else {
+            C2 = C;
+        }
         if (M & 8) {
             if (N & 2) {
                 result4 = __riscv_vle32_v_f32m1(C, 8);
-                result5 = __riscv_vle32_v_f32m1(C + ldc, 8);
+                result5 = __riscv_vle32_v_f32m1(C2, 8);
                 result4 = __riscv_vfmacc_vf_f32m1(result4, alpha, result1, 8);
                 result5 = __riscv_vfmacc_vf_f32m1(result5, alpha, result2, 8);
                 __riscv_vse32_v_f32m1(C, result4, 8);
-                __riscv_vse32_v_f32m1(C + ldc, result5, 8);
+                __riscv_vse32_v_f32m1(C2, result5, 8);
             }
             if (N & 1) {
-                result3 = __riscv_vle32_v_f32m1(C + ((N & 2) * ldc), 8);
+                result3 = __riscv_vle32_v_f32m1(C1, 8);
                 result3 = __riscv_vfmacc_vf_f32m1(result3, alpha, result0, 8);
-                __riscv_vse32_v_f32m1(C + ((N & 2) * ldc), result3, 8);
+                __riscv_vse32_v_f32m1(C1, result3, 8);
             }
         }
         if (M & 4) {
+            const BLASLONG M2 = (M & 8);
             if (N & 2) {
-                resultC = __riscv_vle32_v_f32m1(C + (M & 8), 4);
-                resultD = __riscv_vle32_v_f32m1(C + (M & 8) + ldc, 4);
+                resultC = __riscv_vle32_v_f32m1(C + M2, 4);
+                resultD = __riscv_vle32_v_f32m1(C2 + M2, 4);
                 resultC = __riscv_vfmacc_vf_f32m1(resultC, alpha, result9, 4);
                 resultD = __riscv_vfmacc_vf_f32m1(resultD, alpha, resultA, 4);
-                __riscv_vse32_v_f32m1(C + (M & 8), resultC, 4);
-                __riscv_vse32_v_f32m1(C + (M & 8) + ldc, resultD, 4);
+                __riscv_vse32_v_f32m1(C + M2, resultC, 4);
+                __riscv_vse32_v_f32m1(C2 + M2, resultD, 4);
             }
             if (N & 1) {
-                resultB = __riscv_vle32_v_f32m1(C + ((N & 2) * ldc) + (M & 8), 4);
+                resultB = __riscv_vle32_v_f32m1(C1 + M2, 4);
                 resultB = __riscv_vfmacc_vf_f32m1(resultB, alpha, result8, 4);
-                __riscv_vse32_v_f32m1(C + ((N & 2) * ldc) + (M & 8), resultB, 4);
+                __riscv_vse32_v_f32m1(C1 + M2, resultB, 4);
             }
         }
         if (M & 2) {
+            const BLASLONG M2 = (M & 0xC);
             if (N & 2) {
-                C[0 + (M & 0xC)] += alpha * r8;
-                C[1 + (M & 0xC)] += alpha * r9;
-                C[0 + ldc + (M & 0xC)] += alpha * rC;
-                C[1 + ldc + (M & 0xC)] += alpha * rD;
+                C[0 + M2] += alpha * r8;
+                C[1 + M2] += alpha * r9;
+                C2[0 + M2] += alpha * rC;
+                C2[1 + M2] += alpha * rD;
             }
             if (N & 1) {
-                C[0 + ((N & 2) * ldc) + (M & 0xC)] += alpha * r0;
-                C[1 + ((N & 2) * ldc) + (M & 0xC)] += alpha * r1;
+                C1[0 + M2] += alpha * r0;
+                C1[1 + M2] += alpha * r1;
             }
         }
         if (M & 1) {
+            const BLASLONG M2 = (M & 0xE);
             if (N & 2) {
-                C[0 + (M & 0xE)] += alpha * rA;
-                C[0 + ldc + (M & 0xE)] += alpha * rE;
+                C[0 + M2] += alpha * rA;
+                C2[0 + M2] += alpha * rE;
             }
             if (N & 1) {
-                C[0 + ((N & 2) * ldc) + (M & 0xE)] += alpha * r2;
+                C1[0 + M2] += alpha * r2;
             }
         }
     }
