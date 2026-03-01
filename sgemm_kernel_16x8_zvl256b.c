@@ -1015,7 +1015,8 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
     {
         B04 = B;
     }
-    for (BLASLONG i = 0; i < (M / 16); i++) {
+    BLASLONG i = (M / 16);
+    do {
         float B0, B1, B2, B3, B4, B5, B6;
 #ifdef GEMM_NEW_PACKING
         FLOAT *B00 = B;
@@ -1229,33 +1230,62 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         }
 
         C = C0 + 16;
-    }
+    } while (--i);
 }
 
 static void N_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
+    const bool S = (ldc == 16);
     if (N & 4) {
         if (N & 2) {
             if (N & 1) {
-                N_TAIL_ONE(K, M, 7, alpha, A, B, C, ldc);
+                if (S) {
+                    N_TAIL_ONE(K, M, 7, alpha, A, B, C, 16);
+                } else {
+                    N_TAIL_ONE(K, M, 7, alpha, A, B, C, ldc);
+                }
             } else {
-                N_TAIL_ONE(K, M, 6, alpha, A, B, C, ldc);
+                if (S) {
+                    N_TAIL_ONE(K, M, 6, alpha, A, B, C, 16);
+                } else {
+                    N_TAIL_ONE(K, M, 6, alpha, A, B, C, ldc);
+                }
             }
         } else {
             if (N & 1) {
-                N_TAIL_ONE(K, M, 5, alpha, A, B, C, ldc);
+                if (S) {
+                    N_TAIL_ONE(K, M, 5, alpha, A, B, C, 16);
+                } else {
+                    N_TAIL_ONE(K, M, 5, alpha, A, B, C, ldc);
+                }
             } else {
-                N_TAIL_ONE(K, M, 4, alpha, A, B, C, ldc);
+                if (S) {
+                    N_TAIL_ONE(K, M, 4, alpha, A, B, C, 16);
+                } else {
+                    N_TAIL_ONE(K, M, 4, alpha, A, B, C, ldc);
+                }
             }
         }
     } else if (N & 2) {
         if (N & 1) {
-            N_TAIL_ONE(K, M, 3, alpha, A, B, C, ldc);
+            if (S) {
+                N_TAIL_ONE(K, M, 3, alpha, A, B, C, 16);
+            } else {
+                N_TAIL_ONE(K, M, 3, alpha, A, B, C, ldc);
+            }
         } else {
-            N_TAIL_ONE(K, M, 2, alpha, A, B, C, ldc);
+            if (S) {
+                N_TAIL_ONE(K, M, 2, alpha, A, B, C, 16);
+            } else {
+                N_TAIL_ONE(K, M, 2, alpha, A, B, C, ldc);
+            }
         }
     } else {
-        N_TAIL_ONE(K, M, 1, alpha, A, B, C, ldc);
+        if (S) {
+            N_TAIL_ONE(K, M, 1, alpha, A, B, C, 16);
+        } else {
+            N_TAIL_ONE(K, M, 1, alpha, A, B, C, ldc);
+        }
     }
 }
 
