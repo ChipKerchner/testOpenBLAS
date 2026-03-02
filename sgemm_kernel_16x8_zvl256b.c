@@ -209,7 +209,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 cF = __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x8_f32m1(c18, 7), alpha, result7, N);
                 c18 = __riscv_vcreate_v_f32m1x8(c8, c9, cA, cB, cC, cD, cE, cF);
                 __riscv_vssseg8e32_v_f32m1x8(C, ldc * sizeof(float), c18, N);
-                if (!S && (M & 7)) {
+                if (M & 7) {
                     C += 8;
                 }
             }
@@ -500,7 +500,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 cF = __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 7), alpha, result7, 4);
                 c18 = __riscv_vcreate_v_f32mf2x8(c8, c9, cA, cB, cC, cD, cE, cF);
                 __riscv_vssseg8e32_v_f32mf2x8(C, ldc * sizeof(float), c18, 4);
-                if (!S && (M & 7)) {
+                if (M & 7) {
                     C += 8;
                 }
             }
