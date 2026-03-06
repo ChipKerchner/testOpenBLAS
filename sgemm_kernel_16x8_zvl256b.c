@@ -1053,15 +1053,11 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
 {
 #ifndef GEMM_NEW_PACKING
     FLOAT* B03, *B04;
-    if (N & 4) {
+    if (N & 2) {
         B03 = B + ((N & 4) * K);
-    } else {
-        B03 = B;
     }
-    if (N & 6) {
+    if (N & 1) {
         B04 = B + ((N & 6) * K);
-    } else {
-        B04 = B;
     }
 #endif
     do {
