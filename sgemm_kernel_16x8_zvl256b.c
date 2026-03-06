@@ -44,7 +44,7 @@ Derived:
 //#define GEMM_BOTTOM_EDGE   // One pass for bottom edge - combo on vector and scalar ops
 
 #ifdef GEMM_RIGHT_EDGE
-//#define GEMM_NEW_PACKING   // Right edge packed data friendly
+#define GEMM_NEW_PACKING   // Right edge packed data friendly
 
 #define FORCEINLINE      inline __attribute__((always_inline))
 
@@ -358,7 +358,9 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32m1_t result08, result09, result0A, result0B, result0C, result0D;
         float r0, r1, r2, r8, r9, rA, rC, rD, rE, a0, a1, a2;
         float B0, B1, B2;
+#ifndef GEMM_NEW_PACKING
         FLOAT *B00, *B01;
+#endif
         const bool S2 = (S && (M == 8));
         const bool S3 = ((N & 3) && (M & 8));
         if (S2 || S3) {
@@ -391,7 +393,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 result8 = __riscv_vfmul_vf_f32mf2(resultF, A0[0 + (M & 0x8)], 4);
                 result9 = __riscv_vfmul_vf_f32mf2(resultF, A0[1 + (M & 0x8)], 4);
                 resultA = __riscv_vfmul_vf_f32mf2(resultF, A0[2 + (M & 0x8)], 4);
-                resultB = __riscv_vfmul_vf_f32mf2(resutlF, A0[3 + (M & 0x8)], 4);
+                resultB = __riscv_vfmul_vf_f32mf2(resultF, A0[3 + (M & 0x8)], 4);
             }
             if (M & 2) {
                 resultC = __riscv_vfmul_vf_f32mf2(resultF, A0[0 + (M & 0xC)], 4);
@@ -547,7 +549,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                     result8 = __riscv_vfmacc_vf_f32mf2(result8, A0[0 + (M & 0x8)], resultF, 4);
                     result9 = __riscv_vfmacc_vf_f32mf2(result9, A0[1 + (M & 0x8)], resultF, 4);
                     resultA = __riscv_vfmacc_vf_f32mf2(resultA, A0[2 + (M & 0x8)], resultF, 4);
-                    resultB = __riscv_vfmacc_vf_f32mf2(resutlB, A0[3 + (M & 0x8)], resultF, 4);
+                    resultB = __riscv_vfmacc_vf_f32mf2(resultB, A0[3 + (M & 0x8)], resultF, 4);
                 }
                 if (M & 2) {
                     resultC = __riscv_vfmacc_vf_f32mf2(resultC, A0[0 + (M & 0xC)], resultF, 4);
@@ -1049,23 +1051,15 @@ static void FORCEINLINE M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, c
 #ifdef GEMM_BOTTOM_EDGE
 static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
-    FLOAT* B03, *B04;
 #ifndef GEMM_NEW_PACKING
+    FLOAT* B03, *B04;
     if (N & 4) {
         B03 = B + ((N & 4) * K);
-    } else
-#endif
-    {
-        B03 = B;
     }
-#ifndef GEMM_NEW_PACKING
     if (N & 6) {
         B04 = B + ((N & 6) * K);
-    } else
-#endif
-    {
-        B04 = B;
     }
+#endif
     do {
         float B0, B1, B2, B3, B4, B5, B6;
 #ifdef GEMM_NEW_PACKING
