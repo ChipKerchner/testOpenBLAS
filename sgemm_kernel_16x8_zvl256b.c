@@ -44,7 +44,7 @@ Derived:
 //#define GEMM_BOTTOM_EDGE   // One pass for bottom edge - combo on vector and scalar ops
 
 #ifdef GEMM_RIGHT_EDGE
-#define GEMM_NEW_PACKING   // Right edge packed data friendly
+//#define GEMM_NEW_PACKING   // Right edge packed data friendly
 
 #define FORCEINLINE      inline __attribute__((always_inline))
 
@@ -1055,9 +1055,13 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
     FLOAT* B03, *B04;
     if (N & 4) {
         B03 = B + ((N & 4) * K);
+    } else {
+        B03 = B;
     }
     if (N & 6) {
         B04 = B + ((N & 6) * K);
+    } else {
+        B04 = B;
     }
 #endif
     do {
