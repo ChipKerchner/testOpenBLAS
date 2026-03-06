@@ -1283,7 +1283,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
     } while (--M);
 }
 
-static void N_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
+static void FORCEINLINE N_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
     const bool S = (ldc == 16);
     if (N & 4) {
@@ -1339,38 +1339,11 @@ static void N_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N, FLOAT alpha, 
     }
 }
 
-static void MN_TAIL(BLASLONG K, BLASLONG M, const BLASLONG N, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
-{
-    if (N & 4) {
-        if (N & 2) {
-            if (N & 1) {
-                N_TAIL(K, M, 7, alpha, A, B, C, ldc);
-            } else {
-                N_TAIL(K, M, 6, alpha, A, B, C, ldc);
-            }
-        } else {
-            if (N & 1) {
-                N_TAIL(K, M, 5, alpha, A, B, C, ldc);
-            } else {
-                N_TAIL(K, M, 4, alpha, A, B, C, ldc);
-            }
-        }
-    } else if (N & 2) {
-        if (N & 1) {
-            N_TAIL(K, M, 3, alpha, A, B, C, ldc);
-        } else {
-            N_TAIL(K, M, 2, alpha, A, B, C, ldc);
-        }
-    } else {
-        N_TAIL(K, M, 1, alpha, A, B, C, ldc);
-    }
-}
-
 #ifdef GEMM_RIGHT_EDGE
 static void NM_TAIL(BLASLONG K, BLASLONG M, const BLASLONG m_edge, const BLASLONG N, const BLASLONG S, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
     if (M / 16) {
-        MN_TAIL(K, M / 16, N, alpha, A, B, C, ldc);
+        N_TAIL(K, M / 16, N, alpha, A, B, C, ldc);
     }
     if (m_edge) {
         M &= -16;
@@ -1840,7 +1813,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
 #elif defined(GEMM_BOTTOM_EDGE)
     if (N & 7) {
         if (M / 16) {
-            MN_TAIL(K, M / 16, N, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
+            N_TAIL(K, M / 16, N, alpha, A, &B[n_top*K], &C[n_top*ldc], ldc);
         }
     }
 #endif
