@@ -1069,6 +1069,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
     do {
         float B0, B1, B2, B3, B4, B5, B6;
 #ifdef GEMM_NEW_PACKING
+        // Can write better code for GEMM_NEW_PACKING in which N > 4
         FLOAT *B00 = B;
         if (N & 4) {
             B0 = B00[0];
