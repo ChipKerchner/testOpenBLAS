@@ -1550,35 +1550,43 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
         FLOAT *C0 = C;
         vfloat32m1_t c0, c1, c2, c3, c4, c5, c6, c7;
         vfloat32m1_t c8, c9, cA, cB, cC, cD;
+        vfloat32m2_t c00;
         if (N & 4) {
-            c0 = __riscv_vle32_v_f32m1(C + 0, 8); 
-            c1 = __riscv_vle32_v_f32m1(C + 8, 8);
+            c00 = __riscv_vle32_v_f32m2(C, 16);
+            c0 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            c1 = __riscv_vget_v_f32m2_f32m1(c00, 1);
             C += ldc;
-            c2 = __riscv_vle32_v_f32m1(C + 0, 8);
-            c3 = __riscv_vle32_v_f32m1(C + 8, 8);
+            c00 = __riscv_vle32_v_f32m2(C, 16);
+            c2 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            c3 = __riscv_vget_v_f32m2_f32m1(c00, 1);
             C += ldc;
-            c4 = __riscv_vle32_v_f32m1(C + 0, 8);
-            c5 = __riscv_vle32_v_f32m1(C + 8, 8); 
+            c00 = __riscv_vle32_v_f32m2(C, 16);
+            c4 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            c5 = __riscv_vget_v_f32m2_f32m1(c00, 1);
             C += ldc;
-            c6 = __riscv_vle32_v_f32m1(C + 0, 8);
-            c7 = __riscv_vle32_v_f32m1(C + 8, 8);
+            c00 = __riscv_vle32_v_f32m2(C, 16);
+            c6 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            c7 = __riscv_vget_v_f32m2_f32m1(c00, 1);
             if (N & 3) {
                 C += ldc;
             }
         }
         if (N & 2) {
-            c8 = __riscv_vle32_v_f32m1(C + 0, 8);
-            c9 = __riscv_vle32_v_f32m1(C + 8, 8);
+            c00 = __riscv_vle32_v_f32m2(C, 16);
+            c8 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            c9 = __riscv_vget_v_f32m2_f32m1(c00, 1);
             C += ldc;
-            cA = __riscv_vle32_v_f32m1(C + 0, 8);
-            cB = __riscv_vle32_v_f32m1(C + 8, 8);
+            c00 = __riscv_vle32_v_f32m2(C, 16);
+            cA = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            cB = __riscv_vget_v_f32m2_f32m1(c00, 1);
             if (N & 1) {
                 C += ldc;
             }
         }
         if (N & 1) {
-            cC = __riscv_vle32_v_f32m1(C + 0, 8);
-            cD = __riscv_vle32_v_f32m1(C + 8, 8);
+            c00 = __riscv_vle32_v_f32m2(C, 16);
+            cC = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            cD = __riscv_vget_v_f32m2_f32m1(c00, 1);
         }
 
         if (N & 4) {
@@ -1604,34 +1612,34 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
 
         C = C0;
         if (N & 4) {
-            __riscv_vse32_v_f32m1(C + 0, c0, 8);
-            __riscv_vse32_v_f32m1(C + 8, c1, 8);
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c0, c1);
+            __riscv_vse32_v_f32m2(C, c00, 16);
             C += ldc;
-            __riscv_vse32_v_f32m1(C + 0, c2, 8);
-            __riscv_vse32_v_f32m1(C + 8, c3, 8);
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c2, c3);
+            __riscv_vse32_v_f32m2(C, c00, 16);
             C += ldc;
-            __riscv_vse32_v_f32m1(C + 0, c4, 8);
-            __riscv_vse32_v_f32m1(C + 8, c5, 8);
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c4, c5);
+            __riscv_vse32_v_f32m2(C, c00, 16);
             C += ldc;
-            __riscv_vse32_v_f32m1(C + 0, c6, 8);
-            __riscv_vse32_v_f32m1(C + 8, c7, 8);
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c6, c7);
+            __riscv_vse32_v_f32m2(C, c00, 16);
             if (N & 3) {
                 C += ldc;
             }
         }
         if (N & 2) {
-            __riscv_vse32_v_f32m1(C + 0, c8, 8);
-            __riscv_vse32_v_f32m1(C + 8, c9, 8);
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c8, c9);
+            __riscv_vse32_v_f32m2(C, c00, 16);
             C += ldc;
-            __riscv_vse32_v_f32m1(C + 0, cA, 8);
-            __riscv_vse32_v_f32m1(C + 8, cB, 8);
+            c00 = __riscv_vcreate_v_f32m1_f32m2(cA, cB);
+            __riscv_vse32_v_f32m2(C, c00, 16);
             if (N & 1) {
                 C += ldc;
             }
         }
         if (N & 1) {
-            __riscv_vse32_v_f32m1(C + 0, cC, 8);
-            __riscv_vse32_v_f32m1(C + 8, cD, 8);
+            c00 = __riscv_vcreate_v_f32m1_f32m2(cC, cD);
+            __riscv_vse32_v_f32m2(C, c00, 16);
         }
 
         C = C0 + 16;
