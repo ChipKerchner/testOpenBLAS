@@ -1828,6 +1828,33 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
 
             BLASLONG ci=n_top*ldc+m_top;
 
+#if defined(GEMM_BOTTOM_EDGE) && defined(GEMM_RIGHT_EDGE)
+            vfloat32m2_t c00;
+            c00 = __riscv_vle32_v_f32m2(&C[ci], 16); ci += ldc;
+            vfloat32m1_t c0 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            vfloat32m1_t c1 = __riscv_vget_v_f32m2_f32m1(c00, 1);
+            c00 = __riscv_vle32_v_f32m2(&C[ci], 16); ci += ldc;
+            vfloat32m1_t c2 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            vfloat32m1_t c3 = __riscv_vget_v_f32m2_f32m1(c00, 1);
+            c00 = __riscv_vle32_v_f32m2(&C[ci], 16); ci += ldc;
+            vfloat32m1_t c4 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            vfloat32m1_t c5 = __riscv_vget_v_f32m2_f32m1(c00, 1);
+            c00 = __riscv_vle32_v_f32m2(&C[ci], 16); ci += ldc;
+            vfloat32m1_t c6 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            vfloat32m1_t c7 = __riscv_vget_v_f32m2_f32m1(c00, 1);
+            c00 = __riscv_vle32_v_f32m2(&C[ci], 16); ci += ldc;
+            vfloat32m1_t c8 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            vfloat32m1_t c9 = __riscv_vget_v_f32m2_f32m1(c00, 1);
+            c00 = __riscv_vle32_v_f32m2(&C[ci], 16); ci += ldc;
+            vfloat32m1_t c10 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            vfloat32m1_t c11 = __riscv_vget_v_f32m2_f32m1(c00, 1);
+            c00 = __riscv_vle32_v_f32m2(&C[ci], 16); ci += ldc;
+            vfloat32m1_t c12 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            vfloat32m1_t c13 = __riscv_vget_v_f32m2_f32m1(c00, 1);
+            c00 = __riscv_vle32_v_f32m2(&C[ci], 16);
+            vfloat32m1_t c14 = __riscv_vget_v_f32m2_f32m1(c00, 0);
+            vfloat32m1_t c15 = __riscv_vget_v_f32m2_f32m1(c00, 1);
+#else
             vfloat32m1_t c0 = __riscv_vle32_v_f32m1( &C[ci], gvl); ci += gvl;
             vfloat32m1_t c1 = __riscv_vle32_v_f32m1( &C[ci], gvl); ci += ldc-gvl*1;
             vfloat32m1_t c2 = __riscv_vle32_v_f32m1( &C[ci], gvl); ci += gvl;
@@ -1844,6 +1871,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             vfloat32m1_t c13 = __riscv_vle32_v_f32m1( &C[ci], gvl); ci += ldc-gvl*1;
             vfloat32m1_t c14 = __riscv_vle32_v_f32m1( &C[ci], gvl); ci += gvl;
             vfloat32m1_t c15 = __riscv_vle32_v_f32m1( &C[ci], gvl);
+#endif
             c0 = __riscv_vfmacc_vf_f32m1( c0, alpha, result0, gvl );
             c1 = __riscv_vfmacc_vf_f32m1( c1, alpha, result1, gvl );
             c2 = __riscv_vfmacc_vf_f32m1( c2, alpha, result2, gvl );
@@ -1863,6 +1891,24 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
 
             ci=n_top*ldc+m_top;
 
+#if defined(GEMM_BOTTOM_EDGE) && defined(GEMM_RIGHT_EDGE)
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c0, c1);
+            __riscv_vse32_v_f32m2(&C[ci], c00, 16); ci += ldc;
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c2, c3);
+            __riscv_vse32_v_f32m2(&C[ci], c00, 16); ci += ldc;
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c4, c5);
+            __riscv_vse32_v_f32m2(&C[ci], c00, 16); ci += ldc;
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c6, c7);
+            __riscv_vse32_v_f32m2(&C[ci], c00, 16); ci += ldc;
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c8, c9);
+            __riscv_vse32_v_f32m2(&C[ci], c00, 16); ci += ldc;
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c10, c11);
+            __riscv_vse32_v_f32m2(&C[ci], c00, 16); ci += ldc;
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c12, c13);
+            __riscv_vse32_v_f32m2(&C[ci], c00, 16); ci += ldc;
+            c00 = __riscv_vcreate_v_f32m1_f32m2(c14, c15);
+            __riscv_vse32_v_f32m2(&C[ci], c00, 16);
+#else
             __riscv_vse32_v_f32m1( &C[ci], c0, gvl); ci += gvl;
             __riscv_vse32_v_f32m1( &C[ci], c1, gvl); ci += ldc-gvl*1;
             __riscv_vse32_v_f32m1( &C[ci], c2, gvl); ci += gvl;
@@ -1879,6 +1925,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             __riscv_vse32_v_f32m1( &C[ci], c13, gvl); ci += ldc-gvl*1;
             __riscv_vse32_v_f32m1( &C[ci], c14, gvl); ci += gvl;
             __riscv_vse32_v_f32m1( &C[ci], c15, gvl);
+#endif
             m_top += 16;
         }
 
