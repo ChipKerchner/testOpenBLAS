@@ -259,6 +259,11 @@ FORCEINLINE timer_t get_rvv_timer()
 
 #include "gemm_copy_kernel.h"
 
+#if defined(TEST_FLOAT) && defined(GEMM_RIGHT_CHUNK)
+#undef TRANS_EPSILON
+#define TRANS_EPSILON    (8 * 8)
+#endif
+
 #ifdef B0
 typedef int funcGEMMsmall(BLASLONG, BLASLONG, BLASLONG, IFLOAT *, BLASLONG, FLOAT, IFLOAT *, BLASLONG, FLOAT *, BLASLONG);
 #else
