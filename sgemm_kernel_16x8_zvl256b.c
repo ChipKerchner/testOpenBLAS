@@ -287,7 +287,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 }
 #endif
             }
-        } else if ((M <= 4) && (K >= 2)) {
+        } else if ((M <= 7) && (K >= 2)) {
             vfloat32m2_t B00 = __riscv_vle32_v_f32m2(B, N * 2);
             B0 = __riscv_vget_v_f32m2_f32m1(B00, 0);
             B1 = __riscv_vget_v_f32m2_f32m1(B00, 1);
@@ -1069,16 +1069,28 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                     c14 = __riscv_vfmacc_vf_f32m4(c14, alpha, c24, 4 * 8);
                     __riscv_vse32_v_f32m4(C, c14, 4 * 8);
                 } else {
-                    vfloat32mf2x8_t c18 = __riscv_vlsseg8e32_v_f32mf2x8(C, ldc * sizeof(float), 4);
-                    c18 = __riscv_vset_v_f32mf2_f32mf2x8(c18, 0, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 0), alpha, result0, 4));
-                    c18 = __riscv_vset_v_f32mf2_f32mf2x8(c18, 1, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 1), alpha, result1, 4));
-                    c18 = __riscv_vset_v_f32mf2_f32mf2x8(c18, 2, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 2), alpha, result2, 4));
-                    c18 = __riscv_vset_v_f32mf2_f32mf2x8(c18, 3, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 3), alpha, result3, 4));
-                    c18 = __riscv_vset_v_f32mf2_f32mf2x8(c18, 4, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 4), alpha, result4, 4));
-                    c18 = __riscv_vset_v_f32mf2_f32mf2x8(c18, 5, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 5), alpha, result5, 4));
-                    c18 = __riscv_vset_v_f32mf2_f32mf2x8(c18, 6, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 6), alpha, result6, 4));
-                    c18 = __riscv_vset_v_f32mf2_f32mf2x8(c18, 7, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x8_f32mf2(c18, 7), alpha, result7, 4));
-                    __riscv_vssseg8e32_v_f32mf2x8(C, ldc * sizeof(float), c18, 4);
+                    FLOAT temp[8 * 8];
+                    __riscv_vse32_v_f32mf2(temp + (0 * 8), result0, 4);
+                    __riscv_vse32_v_f32mf2(temp + (1 * 8), result1, 4);
+                    __riscv_vse32_v_f32mf2(temp + (2 * 8), result2, 4);
+                    __riscv_vse32_v_f32mf2(temp + (3 * 8), result3, 4);
+                    __riscv_vse32_v_f32mf2(temp + (4 * 8), result4, 4);
+                    __riscv_vse32_v_f32mf2(temp + (5 * 8), result5, 4);
+                    __riscv_vse32_v_f32mf2(temp + (6 * 8), result6, 4);
+                    __riscv_vse32_v_f32mf2(temp + (7 * 8), result7, 4);
+                    vfloat32m1x4_t c14 = __riscv_vlsseg4e32_v_f32m1x4(temp, 8 * sizeof(float), 4);
+                    vfloat32m1_t c0 = __riscv_vle32_v_f32m1(C + (0 * ldc), 8);
+                    vfloat32m1_t c1 = __riscv_vle32_v_f32m1(C + (1 * ldc), 8);
+                    vfloat32m1_t c2 = __riscv_vle32_v_f32m1(C + (2 * ldc), 8);
+                    vfloat32m1_t c3 = __riscv_vle32_v_f32m1(C + (3 * ldc), 8);
+                    c0 = __riscv_vfmacc_vf_f32m1(c0, alpha, __riscv_vget_v_f32m1x4_f32m1(c14, 0), 8);
+                    c1 = __riscv_vfmacc_vf_f32m1(c1, alpha, __riscv_vget_v_f32m1x4_f32m1(c14, 1), 8);
+                    c2 = __riscv_vfmacc_vf_f32m1(c2, alpha, __riscv_vget_v_f32m1x4_f32m1(c14, 2), 8);
+                    c3 = __riscv_vfmacc_vf_f32m1(c3, alpha, __riscv_vget_v_f32m1x4_f32m1(c14, 3), 8);
+                    __riscv_vse32_v_f32m1(C + (0 * ldc), c0, 8);
+                    __riscv_vse32_v_f32m1(C + (1 * ldc), c1, 8);
+                    __riscv_vse32_v_f32m1(C + (2 * ldc), c2, 8);
+                    __riscv_vse32_v_f32m1(C + (3 * ldc), c3, 8);
                 }
             }
             FLOAT* C0;
