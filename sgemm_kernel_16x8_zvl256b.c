@@ -142,7 +142,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 result3 = __riscv_vfadd_vv_f32m1(result3, result5, N);
                 resultE = __riscv_vfadd_vv_f32m1(resultE, result3, N);
             } else {
-                resultE = __riscv_vfmv_v_f_f32m1(0.0f, N);
+                resultE = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
             }
 
             for (BLASLONG k = K & 7; k--; ) {
@@ -268,11 +268,11 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 }
             } else {
                 if (M & 2) {
-                    resultC = __riscv_vfmv_v_f_f32m1(0.0f, N);
-                    resultD = __riscv_vfmv_v_f_f32m1(0.0f, N);
+                    resultC = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    resultD = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
                 }
                 if (M & 1) {
-                    resultE = __riscv_vfmv_v_f_f32m1(0.0f, N);
+                    resultE = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
                 }
             }
 
@@ -426,17 +426,17 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 }
             } else {
                 if (M & 4) {
-                    result8 = __riscv_vfmv_v_f_f32m1(0.0f, N);
-                    result9 = __riscv_vfmv_v_f_f32m1(0.0f, N);
-                    resultA = __riscv_vfmv_v_f_f32m1(0.0f, N);
-                    resultB = __riscv_vfmv_v_f_f32m1(0.0f, N);
+                    result8 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    result9 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    resultA = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    resultB = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
                 }
                 if (M & 2) {
-                    resultC = __riscv_vfmv_v_f_f32m1(0.0f, N);
-                    resultD = __riscv_vfmv_v_f_f32m1(0.0f, N);
+                    resultC = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    resultD = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
                 }
                 if (M & 1) {
-                    resultE = __riscv_vfmv_v_f_f32m1(0.0f, N);
+                    resultE = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
                 }
             }
 
