@@ -617,7 +617,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             } else {
                 FLOAT temp[8 * 8];
                 vfloat32m1x8_t c28 = __riscv_vcreate_v_f32m1x8(result0, result1, result2, result3, result4, result5, result6, result7);
-                __riscv_vssseg8e32_v_f32m1x8(temp, 8 * sizeof(float), c28, N);
+                __riscv_vsseg8e32_v_f32m1x8(temp, c28, N);
                 vfloat32m8_t c18 = __riscv_vle32_v_f32m8(temp, N * 8);
                 vfloat32m1_t c0 = __riscv_vle32_v_f32m1(C + (0 * ldc), N);
                 vfloat32m1_t c1 = __riscv_vle32_v_f32m1(C + (1 * ldc), N);
@@ -1095,7 +1095,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 } else {
                     FLOAT temp[8 * 4];
                     vfloat32mf2x8_t c18 = __riscv_vcreate_v_f32mf2x8(result0, result1, result2, result3, result4, result5, result6, result7);
-                    __riscv_vssseg8e32_v_f32mf2x8(temp, 8 * sizeof(float), c18, 4);
+                    __riscv_vsseg8e32_v_f32mf2x8(temp, c18, 4);
                     vfloat32m4_t c14 = __riscv_vle32_v_f32m4(temp, 4 * 8);
                     vfloat32m1_t c0 = __riscv_vle32_v_f32m1(C + (0 * ldc), 8);
                     vfloat32m1_t c1 = __riscv_vle32_v_f32m1(C + (1 * ldc), 8);
