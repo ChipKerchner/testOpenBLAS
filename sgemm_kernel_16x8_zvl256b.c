@@ -364,14 +364,14 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 
 #ifdef GEMM_NEW_PACKING
                     if (M & 4) {
-                        result8 = __riscv_vfmacc_vf_f32m1(A0[result8, 0 + (M * 0)], B0, N);
-                        result9 = __riscv_vfmacc_vf_f32m1(A0[result9, 1 + (M * 0)], B0, N);
-                        resultA = __riscv_vfmacc_vf_f32m1(A0[resultA, 2 + (M * 0)], B0, N);
-                        resultB = __riscv_vfmacc_vf_f32m1(A0[resultB, 3 + (M * 0)], B0, N);
-                        result0 = __riscv_vfmacc_vf_f32m1(A0[result0, 0 + (M * 1)], B1, N);
-                        result1 = __riscv_vfmacc_vf_f32m1(A0[result1, 1 + (M * 1)], B1, N);
-                        result2 = __riscv_vfmacc_vf_f32m1(A0[result2, 2 + (M * 1)], B1, N);
-                        result3 = __riscv_vfmacc_vf_f32m1(A0[result3, 3 + (M * 1)], B1, N);
+                        result8 = __riscv_vfmacc_vf_f32m1(result8, A0[0 + (M * 0)], B0, N);
+                        result9 = __riscv_vfmacc_vf_f32m1(result9, A0[1 + (M * 0)], B0, N);
+                        resultA = __riscv_vfmacc_vf_f32m1(resultA, A0[2 + (M * 0)], B0, N);
+                        resultB = __riscv_vfmacc_vf_f32m1(resultB, A0[3 + (M * 0)], B0, N);
+                        result0 = __riscv_vfmacc_vf_f32m1(result0, A0[0 + (M * 1)], B1, N);
+                        result1 = __riscv_vfmacc_vf_f32m1(result1, A0[1 + (M * 1)], B1, N);
+                        result2 = __riscv_vfmacc_vf_f32m1(result2, A0[2 + (M * 1)], B1, N);
+                        result3 = __riscv_vfmacc_vf_f32m1(result3, A0[3 + (M * 1)], B1, N);
                     }
                     if (M & 2) {
                         resultC = __riscv_vfmacc_vf_f32m1(resultC, A0[0 + (M & 0x4) + (M * 0)], B0, N);
