@@ -57,6 +57,7 @@
 #define GEMM_SWITCH_INPUT // Switch M & N inputs
 #define GEMM_RIGHT_EDGE   // One pass on right edge
 #define GEMM_BOTTOM_EDGE  // One pass on bottom edge
+#define GEMM_RIGHT_CHUNK   // Break K into chunks (causes epsilon differences)
 
 #ifdef TEST_VECTOR
 //#define VERIFY_MATRIX        // Verfiy GEMV versus GEMM
