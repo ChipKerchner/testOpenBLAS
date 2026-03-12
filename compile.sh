@@ -48,9 +48,9 @@ if [[ $USE_ASCALON -eq 1 ]]; then
 export ARCH_FLAG="${ARCH_FLAG}_zvbb"
 fi
 
-export COMMON_FLAGS="${OPT_FLAGS} -march=${ARCH_FLAG} -mabi=lp64d -Wall"
+export COMMON_FLAGS="${OPT_FLAGS} -march=${ARCH_FLAG} -mabi=lp64d -Wall -mrvv-vector-bits=zvl"
 if [[ $USE_GCC -eq 0 ]]; then
-export COMMON_FLAGS="${COMMON_FLAGS} -mrvv-vector-bits=zvl -Wno-vla-cxx-extension"
+export COMMON_FLAGS="${COMMON_FLAGS} -Wno-vla-cxx-extension"
 fi
 
 if [[ $USE_STATIC -eq 1 ]]; then
