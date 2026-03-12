@@ -40,6 +40,8 @@ Derived:
 
 #include "common.h"
 
+#include <stdbool.h>
+
 #define GEMM_RIGHT_EDGE    // One pass for right edge - swap A & B - transpose at end
 #define GEMM_BOTTOM_EDGE   // One pass for bottom edge - combo on vector and scalar ops
 #define GEMM_RIGHT_CHUNK   // Break K into chunks (causes epsilon differences)
