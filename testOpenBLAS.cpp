@@ -1006,7 +1006,7 @@ int main(int argc, char **argv)
   printf("\n");
 #endif
 
-#ifdef GEMM_SWITCH_INPUT
+#if defined(GEMM_SWITCH_INPUT) && defined(TEST_MATRIX)
   BLASLONG swap = M;
   M = N;
   N = swap;
@@ -1092,7 +1092,10 @@ int main(int argc, char **argv)
     FLOAT *output_matrix0 = NULL, *output_matrix1 = NULL, *output_matrix2 = NULL;
 #else
     IFLOAT input_vector0[in * inc], input_vector1[in * inc];
-    FLOAT output0[N0 * inc], output1[N0 * inc], output2[N0 * inc], input[N0 * inc];
+    FLOAT output1[N0 * inc], input[N0 * inc];
+#if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
+    FLOAT output0[N0 * inc], output2[N0 * inc];
+#endif
 #endif
     IFLOAT *input_matrix0 = NULL, *input_matrix1 = NULL;
 #if defined(VERIFY_OPENBLAS) || defined(TEST_MATRIX)

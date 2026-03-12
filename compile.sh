@@ -50,7 +50,7 @@ fi
 
 export COMMON_FLAGS="${OPT_FLAGS} -march=${ARCH_FLAG} -mabi=lp64d -Wall"
 if [[ $USE_GCC -eq 0 ]]; then
-export COMMON_FLAGS="${COMMON_FLAGS} -mrvv-vector-bits=zvl"
+export COMMON_FLAGS="${COMMON_FLAGS} -mrvv-vector-bits=zvl -Wno-vla-cxx-extension"
 fi
 
 if [[ $USE_STATIC -eq 1 ]]; then
