@@ -28,7 +28,7 @@
 #define TEST_INITIALIZE // Include initializing
 #endif
 
-#define TEST_MATRIX   // Test GEMM
+//#define TEST_MATRIX   // Test GEMM
 #ifndef TEST_MATRIX
 #define TEST_VECTOR   // Test GEMV
 #endif
@@ -816,7 +816,11 @@ int verify(int test, int orient, int orient2, BLASLONG M, BLASLONG N, BLASLONG o
            FLOAT *input, BLASLONG inc, FLOAT *err)
 #endif
 {
+#ifdef TEST_MATRIX
   FLOAT tol = (FLOAT)(K * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+#else
+  FLOAT tol = (FLOAT)(((orient == TEST_TRANSPOSE) ? M : N)  * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+#endif
 
 #ifdef TEST_MATRIX
   if (verifyOut(output0, output1, tol, M, N, K, TEST_TYPE, orient, orient2, err)) {
@@ -1318,7 +1322,11 @@ again:
 
 #if defined(TEST_PACKING) && defined(TEST_INITIALIZE)
   if (all) {
+#ifdef TEST_MATRIX
     FLOAT tol = (FLOAT)(K * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+#else
+    FLOAT tol = (FLOAT)(((orient == TEST_TRANSPOSE) ? M : N)  * TRANS_EPSILON) * FLOAT_EPSILON * alpha;
+#endif
     printf("All %s tests successful from %4d to %4ld (%4ld - %8.6f %8.6f - %10u)\n\n", (all == 2) ? "rectangular" : "square", 1, M, N, err, tol, openblas_seed);
   }
 #endif
