@@ -404,7 +404,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                     result6 = __riscv_vfmul_vf_f32m1(B1, A3[0 + (1 * 1)], N);
                     A3 += (1 * 2);
                 }
-                if (S2) {
+                if (M == 8) {
                     A0 += (N * 2);
                 }
 #endif
@@ -504,7 +504,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                         result6 = __riscv_vfmacc_vf_f32m1(result6, A3[0 + (1 * 1)], B1, N);
                         A3 += (1 * 2);
                     }
-                    if (S2) {
+                    if (M == 8) {
                         A0 += (N * 2);
                     }
 #endif
@@ -1633,8 +1633,9 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
         }
 #endif
 
-        vfloat32m1_t A0 = __riscv_vle32_v_f32m1(A + 0, 8);
-        vfloat32m1_t A1 = __riscv_vle32_v_f32m1(A + 8, 8);
+        vfloat32m2_t A00 = __riscv_vle32_v_f32m2(A, 8 * 2);
+        vfloat32m1_t A0 = __riscv_vget_v_f32m2_f32m1(A00, 0);
+        vfloat32m1_t A1 = __riscv_vget_v_f32m2_f32m1(A00, 1);
         A += 16;
 
         vfloat32m1_t result0, result1, result2, result3, result4, result5, result6, result7;
