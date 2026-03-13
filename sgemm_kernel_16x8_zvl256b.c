@@ -2012,13 +2012,13 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
             }
 
             if (K & 1) {
-#ifdef GEMM_NEW_PACKING
                 if (N == 4) {
                     B0 = B00[0];
                     B1 = B00[1];
                     B2 = B00[2];
                     B3 = B00[3];
                 }
+#ifdef GEMM_NEW_PACKING
                 if (N & 2) {
                     B4 = B00[0 + (N & 4)];
                     B5 = B00[1 + (N & 4)];
@@ -2027,12 +2027,6 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                     B6 = B00[0 + (N & 6)];
                 }
 #else
-                if (N == 4) {
-                    B0 = B00[0];
-                    B1 = B00[1];
-                    B2 = B00[2];
-                    B3 = B00[3];
-                }
                 if (N & 2) {
                     B4 = B01[0];
                     B5 = B01[1];
