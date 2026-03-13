@@ -151,7 +151,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 B += N;
 
 #ifdef GEMM_NEW_PACKING
-                resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0xE)], B0, N);
+                resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0x6)], B0, N);
                 A0 += M;
 #else
                 resultE = __riscv_vfmacc_vf_f32m1(resultE, A3[0], B0, N);
@@ -283,11 +283,11 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
 
 #ifdef GEMM_NEW_PACKING
                 if (M & 2) {
-                    resultC = __riscv_vfmacc_vf_f32m1(resultC, A0[0 + (M & 0xC)], B0, N);
-                    resultD = __riscv_vfmacc_vf_f32m1(resultD, A0[1 + (M & 0xC)], B0, N);
+                    resultC = __riscv_vfmacc_vf_f32m1(resultC, A0[0 + (M & 0x4)], B0, N);
+                    resultD = __riscv_vfmacc_vf_f32m1(resultD, A0[1 + (M & 0x4)], B0, N);
                 }
                 if (M & 1) {
-                    resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0xE)], B0, N);
+                    resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0x6)], B0, N);
                 }
                 A0 += M;
 #else
@@ -302,13 +302,61 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 }
 #endif
             }
-        } else if (M <= 7) {
-            if (K >= 2) {
-                vfloat32m2_t B00 = __riscv_vle32_v_f32m2(B, N * 2);
-                B0 = __riscv_vget_v_f32m2_f32m1(B00, 0);
-                B1 = __riscv_vget_v_f32m2_f32m1(B00, 1);
-                B += (N * 2);
+        } else if (M <= 8) {
+            vfloat32m1_t A4;
 
+            if (K >= 2) {
+                vfloat32m2_t B00, A00;
+                vfloat32m1_t A5;
+                vfloat32m1_t resultF;
+
+                if (!S2) {
+                    B00 = __riscv_vle32_v_f32m2(B, N * 2);
+                    B0 = __riscv_vget_v_f32m2_f32m1(B00, 0);
+                    B1 = __riscv_vget_v_f32m2_f32m1(B00, 1);
+                }
+
+                if (M == 8) {
+                    if (S2) {
+                        A00 = __riscv_vle32_v_f32m2(A0, N * 2);
+                        A4 = __riscv_vget_v_f32m2_f32m1(A00, 0);
+                        A5 = __riscv_vget_v_f32m2_f32m1(A00, 1);
+
+                        result0 = __riscv_vfmul_vf_f32m1(A4, B[0], N);
+                        result1 = __riscv_vfmul_vf_f32m1(A4, B[1], N);
+                        result2 = __riscv_vfmul_vf_f32m1(A4, B[2], N);
+                        result3 = __riscv_vfmul_vf_f32m1(A4, B[3], N);
+                        result4 = __riscv_vfmul_vf_f32m1(A4, B[4], N);
+                        result5 = __riscv_vfmul_vf_f32m1(A4, B[5], N);
+                        result6 = __riscv_vfmul_vf_f32m1(A4, B[6], N);
+                        result7 = __riscv_vfmul_vf_f32m1(A4, B[7], N);
+                        result8 = __riscv_vfmul_vf_f32m1(A5, B[8], N);
+                        result9 = __riscv_vfmul_vf_f32m1(A5, B[9], N);
+                        resultA = __riscv_vfmul_vf_f32m1(A5, B[10], N);
+                        resultB = __riscv_vfmul_vf_f32m1(A5, B[11], N);
+                        resultC = __riscv_vfmul_vf_f32m1(A5, B[12], N);
+                        resultD = __riscv_vfmul_vf_f32m1(A5, B[13], N);
+                        resultE = __riscv_vfmul_vf_f32m1(A5, B[14], N);
+                        resultF = __riscv_vfmul_vf_f32m1(A5, B[15], N);
+                    } else {
+                        result0 = __riscv_vfmul_vf_f32m1(B0, A0[0], N);
+                        result1 = __riscv_vfmul_vf_f32m1(B0, A0[1], N);
+                        result2 = __riscv_vfmul_vf_f32m1(B0, A0[2], N);
+                        result3 = __riscv_vfmul_vf_f32m1(B0, A0[3], N);
+                        result4 = __riscv_vfmul_vf_f32m1(B0, A0[4], N);
+                        result5 = __riscv_vfmul_vf_f32m1(B0, A0[5], N);
+                        result6 = __riscv_vfmul_vf_f32m1(B0, A0[6], N);
+                        result7 = __riscv_vfmul_vf_f32m1(B0, A0[7], N);
+                        result8 = __riscv_vfmul_vf_f32m1(B1, A0[8], N);
+                        result9 = __riscv_vfmul_vf_f32m1(B1, A0[9], N);
+                        resultA = __riscv_vfmul_vf_f32m1(B1, A0[10], N);
+                        resultB = __riscv_vfmul_vf_f32m1(B1, A0[11], N);
+                        resultC = __riscv_vfmul_vf_f32m1(B1, A0[12], N);
+                        resultD = __riscv_vfmul_vf_f32m1(B1, A0[13], N);
+                        resultE = __riscv_vfmul_vf_f32m1(B1, A0[14], N);
+                        resultF = __riscv_vfmul_vf_f32m1(B1, A0[15], N);
+                    }
+                }
 #ifdef GEMM_NEW_PACKING
                 if (M & 4) {
                     result8 = __riscv_vfmul_vf_f32m1(B0, A0[0 + (M * 0)], N);
@@ -355,14 +403,60 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                     result6 = __riscv_vfmul_vf_f32m1(B1, A3[0 + (1 * 1)], N);
                     A3 += (1 * 2);
                 }
+                if (S2) {
+                    A0 += (N * 2);
+                }
 #endif
+                B += (N * 2);
 
                 for (BLASLONG k = (K / 2); --k; ) {
-                    B00 = __riscv_vle32_v_f32m2(B, N * 2);
-                    B0 = __riscv_vget_v_f32m2_f32m1(B00, 0);
-                    B1 = __riscv_vget_v_f32m2_f32m1(B00, 1);
-                    B += (N * 2);
+                    if (!S2) {
+                        B00 = __riscv_vle32_v_f32m2(B, N * 2);
+                        B0 = __riscv_vget_v_f32m2_f32m1(B00, 0);
+                        B1 = __riscv_vget_v_f32m2_f32m1(B00, 1);
+                    }
 
+                    if (M == 8) {
+                        if (S2) {
+                            A00 = __riscv_vle32_v_f32m2(A0, N * 2);
+                            A4 = __riscv_vget_v_f32m2_f32m1(A00, 0);
+                            A5 = __riscv_vget_v_f32m2_f32m1(A00, 1);
+
+                            result0 = __riscv_vfmacc_vf_f32m1(result0, B[0], A4, N);
+                            result1 = __riscv_vfmacc_vf_f32m1(result1, B[1], A4, N);
+                            result2 = __riscv_vfmacc_vf_f32m1(result2, B[2], A4, N);
+                            result3 = __riscv_vfmacc_vf_f32m1(result3, B[3], A4, N);
+                            result4 = __riscv_vfmacc_vf_f32m1(result4, B[4], A4, N);
+                            result5 = __riscv_vfmacc_vf_f32m1(result5, B[5], A4, N);
+                            result6 = __riscv_vfmacc_vf_f32m1(result6, B[6], A4, N);
+                            result7 = __riscv_vfmacc_vf_f32m1(result7, B[7], A4, N);
+                            result8 = __riscv_vfmacc_vf_f32m1(result8, B[8], A5, N);
+                            result9 = __riscv_vfmacc_vf_f32m1(result9, B[9], A5, N);
+                            resultA = __riscv_vfmacc_vf_f32m1(resultA, B[10], A5, N);
+                            resultB = __riscv_vfmacc_vf_f32m1(resultB, B[11], A5, N);
+                            resultC = __riscv_vfmacc_vf_f32m1(resultC, B[12], A5, N);
+                            resultD = __riscv_vfmacc_vf_f32m1(resultD, B[13], A5, N);
+                            resultE = __riscv_vfmacc_vf_f32m1(resultE, B[14], A5, N);
+                            resultF = __riscv_vfmacc_vf_f32m1(resultF, B[15], A5, N);
+                        } else {
+                            result0 = __riscv_vfmacc_vf_f32m1(result0, A0[0], B0, N);
+                            result1 = __riscv_vfmacc_vf_f32m1(result1, A0[1], B0, N);
+                            result2 = __riscv_vfmacc_vf_f32m1(result2, A0[2], B0, N);
+                            result3 = __riscv_vfmacc_vf_f32m1(result3, A0[3], B0, N);
+                            result4 = __riscv_vfmacc_vf_f32m1(result4, A0[4], B0, N);
+                            result5 = __riscv_vfmacc_vf_f32m1(result5, A0[5], B0, N);
+                            result6 = __riscv_vfmacc_vf_f32m1(result6, A0[6], B0, N);
+                            result7 = __riscv_vfmacc_vf_f32m1(result7, A0[7], B0, N);
+                            result8 = __riscv_vfmacc_vf_f32m1(result8, A0[8], B1, N);
+                            result9 = __riscv_vfmacc_vf_f32m1(result9, A0[9], B1, N);
+                            resultA = __riscv_vfmacc_vf_f32m1(resultA, A0[10], B1, N);
+                            resultB = __riscv_vfmacc_vf_f32m1(resultB, A0[11], B1, N);
+                            resultC = __riscv_vfmacc_vf_f32m1(resultC, A0[12], B1, N);
+                            resultD = __riscv_vfmacc_vf_f32m1(resultD, A0[13], B1, N);
+                            resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[14], B1, N);
+                            resultF = __riscv_vfmacc_vf_f32m1(resultF, A0[15], B1, N);
+                        }
+                    }
 #ifdef GEMM_NEW_PACKING
                     if (M & 4) {
                         result8 = __riscv_vfmacc_vf_f32m1(result8, A0[0 + (M * 0)], B0, N);
@@ -409,9 +503,23 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                         result6 = __riscv_vfmacc_vf_f32m1(result6, A3[0 + (1 * 1)], B1, N);
                         A3 += (1 * 2);
                     }
+                    if (S2) {
+                        A0 += (N * 2);
+                    }
 #endif
+                    B += (N * 2);
                 }
 
+                if (M == 8) {
+                    result0 = __riscv_vfadd_vv_f32m1(result0, result8, N);
+                    result1 = __riscv_vfadd_vv_f32m1(result1, result9, N);
+                    result2 = __riscv_vfadd_vv_f32m1(result2, resultA, N);
+                    result3 = __riscv_vfadd_vv_f32m1(result3, resultB, N);
+                    result4 = __riscv_vfadd_vv_f32m1(result4, resultC, N);
+                    result5 = __riscv_vfadd_vv_f32m1(result5, resultD, N);
+                    result6 = __riscv_vfadd_vv_f32m1(result6, resultE, N);
+                    result7 = __riscv_vfadd_vv_f32m1(result7, resultF, N);
+                }
                 if (M & 4) {
                     result8 = __riscv_vfadd_vv_f32m1(result8, result0, N);
                     result9 = __riscv_vfadd_vv_f32m1(result9, result1, N);
@@ -426,6 +534,16 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                     resultE = __riscv_vfadd_vv_f32m1(resultE, result6, N);
                 }
             } else {
+                if (M == 8) {
+                    result0 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    result1 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    result2 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    result3 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    result4 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    result5 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    result6 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                    result7 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
+                }
                 if (M & 4) {
                     result8 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
                     result9 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, N));
@@ -442,21 +560,45 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             }
 
             if (K & 1) {
-                B0 = __riscv_vle32_v_f32m1(B, N);
+                if (!S2) {
+                  B0 = __riscv_vle32_v_f32m1(B, N);
+                }
 
+                if (M == 8) {
+                    if (S2) {
+                        A4 = __riscv_vle32_v_f32m1(A0, N);
+                        result0 = __riscv_vfmacc_vf_f32m1(result0, B[0], A4, N);
+                        result1 = __riscv_vfmacc_vf_f32m1(result1, B[1], A4, N);
+                        result2 = __riscv_vfmacc_vf_f32m1(result2, B[2], A4, N);
+                        result3 = __riscv_vfmacc_vf_f32m1(result3, B[3], A4, N);
+                        result4 = __riscv_vfmacc_vf_f32m1(result4, B[4], A4, N);
+                        result5 = __riscv_vfmacc_vf_f32m1(result5, B[5], A4, N);
+                        result6 = __riscv_vfmacc_vf_f32m1(result6, B[6], A4, N);
+                        result7 = __riscv_vfmacc_vf_f32m1(result7, B[7], A4, N);
+                    } else {
+                        result0 = __riscv_vfmacc_vf_f32m1(result0, A0[0], B0, N);
+                        result1 = __riscv_vfmacc_vf_f32m1(result1, A0[1], B0, N);
+                        result2 = __riscv_vfmacc_vf_f32m1(result2, A0[2], B0, N);
+                        result3 = __riscv_vfmacc_vf_f32m1(result3, A0[3], B0, N);
+                        result4 = __riscv_vfmacc_vf_f32m1(result4, A0[4], B0, N);
+                        result5 = __riscv_vfmacc_vf_f32m1(result5, A0[5], B0, N);
+                        result6 = __riscv_vfmacc_vf_f32m1(result6, A0[6], B0, N);
+                        result7 = __riscv_vfmacc_vf_f32m1(result7, A0[7], B0, N);
+                    }
+                }
 #ifdef GEMM_NEW_PACKING
                 if (M & 4) {
-                    result8 = __riscv_vfmacc_vf_f32m1(result8, A0[0 + (M & 0x8)], B0, N);
-                    result9 = __riscv_vfmacc_vf_f32m1(result9, A0[1 + (M & 0x8)], B0, N);
-                    resultA = __riscv_vfmacc_vf_f32m1(resultA, A0[2 + (M & 0x8)], B0, N);
-                    resultB = __riscv_vfmacc_vf_f32m1(resultB, A0[3 + (M & 0x8)], B0, N);
+                    result8 = __riscv_vfmacc_vf_f32m1(result8, A0[0], B0, N);
+                    result9 = __riscv_vfmacc_vf_f32m1(result9, A0[1], B0, N);
+                    resultA = __riscv_vfmacc_vf_f32m1(resultA, A0[2], B0, N);
+                    resultB = __riscv_vfmacc_vf_f32m1(resultB, A0[3], B0, N);
                 }
                 if (M & 2) {
-                    resultC = __riscv_vfmacc_vf_f32m1(resultC, A0[0 + (M & 0xC)], B0, N);
-                    resultD = __riscv_vfmacc_vf_f32m1(resultD, A0[1 + (M & 0xC)], B0, N);
+                    resultC = __riscv_vfmacc_vf_f32m1(resultC, A0[0 + (M & 0x4)], B0, N);
+                    resultD = __riscv_vfmacc_vf_f32m1(resultD, A0[1 + (M & 0x4)], B0, N);
                 }
                 if (M & 1) {
-                    resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0xE)], B0, N);
+                    resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0x6)], B0, N);
                 }
 #else
                 if (M & 4) {
