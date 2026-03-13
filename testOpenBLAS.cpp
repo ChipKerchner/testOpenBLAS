@@ -28,7 +28,7 @@
 #define TEST_INITIALIZE // Include initializing
 #endif
 
-//#define TEST_MATRIX   // Test GEMM
+#define TEST_MATRIX   // Test GEMM
 #ifndef TEST_MATRIX
 #define TEST_VECTOR   // Test GEMV
 #endif
