@@ -672,6 +672,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 c18 = __riscv_vfmacc_vf_f32m8(c18, alpha, c28, N);
                 __riscv_vse32_v_f32m8(C, c18, N * 8);
             } else {
+                // Can swap A and B and remove transpose when compilers get better
                 FLOAT temp[8 * 8];
                 vfloat32m1x8_t c28 = __riscv_vcreate_v_f32m1x8(result0, result1, result2, result3, result4, result5, result6, result7);
                 __riscv_vsseg8e32_v_f32m1x8(temp, c28, N);
@@ -1150,6 +1151,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                     c14 = __riscv_vfmacc_vf_f32m4(c14, alpha, c24, 4 * 8);
                     __riscv_vse32_v_f32m4(C, c14, 4 * 8);
                 } else {
+                    // Can swap A and B and remove transpose when compilers get better
                     FLOAT temp[8 * 4];
                     vfloat32mf2x8_t c18 = __riscv_vcreate_v_f32mf2x8(result0, result1, result2, result3, result4, result5, result6, result7);
                     __riscv_vsseg8e32_v_f32mf2x8(temp, c18, 4);
@@ -1507,6 +1509,12 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
         B04 = B + ((N & 6) * K);
     }
 #endif
+#ifdef GEMM_BOTTOM_CHUNK
+    FLOAT K2;
+    if (N <= 4) {
+        K2 = K;
+    }
+#endif 
     do {
         FLOAT B0, B1, B2, B3, B4, B5, B6;
 #ifdef GEMM_NEW_PACKING
@@ -1533,6 +1541,9 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
         vfloat32m1_t A2, A3, A4, A5, A6, A7;
         vfloat32m1_t resultE, resultF;
         FLOAT B7;
+        if (N <= 4) {
+            K = K2;
+        }
 
         if (N == 1) {
             if (K >= 8) {
