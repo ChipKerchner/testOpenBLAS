@@ -1511,7 +1511,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
     if (N <= 4) {
         K2 = K;
     }
-#endif 
+#endif
     do {
         FLOAT B0, B1, B2, B3, B4, B5, B6;
 #ifdef GEMM_NEW_PACKING
