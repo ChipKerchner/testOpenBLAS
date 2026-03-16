@@ -590,15 +590,10 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
                 A3 += 1;
             }
 #endif
+            K--;
         }
 
-#ifdef GEMM_RIGHT_CHUNK
-        BLASLONG k = (M <= 8) ? 0 : 1;
-#else
-        BLASLONG k = 1;
-#endif
-
-        for (; k < K; k++) {
+        while (K--) {
             if (!S2) {
                 B0 = __riscv_vle32_v_f32m1(B, N);
             }
@@ -987,7 +982,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         }
 #endif
 
-        for (BLASLONG k = 1; k < K; k++) {
+        while (--K) {
             if (S2 || S3) {
                 result03 = __riscv_vle32_v_f32m1(A0, 8);
             }
@@ -1506,12 +1501,21 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
         B04 = B + ((N & 6) * K);
     }
 #endif
-#ifdef GEMM_BOTTOM_CHUNK
     FLOAT K2;
-    if (N <= 4) {
-        K2 = K;
-    }
+#ifdef GEMM_BOTTOM_CHUNK
+    FLOAT K3;
+    if (N == 1) {
+        K3 = (K / 8);
+        K &= 7;
+    } else if (N <= 4) {
+        K3 = (K / 2);
+        K &= 1;
+    } else
 #endif
+    {
+        K--;
+    }
+    K2 = K;
     do {
         FLOAT B0, B1, B2, B3, B4, B5, B6;
 #ifdef GEMM_NEW_PACKING
@@ -1538,12 +1542,9 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
         vfloat32m1_t A2, A3, A4, A5, A6, A7;
         vfloat32m1_t resultE, resultF;
         FLOAT B7;
-        if (N <= 4) {
-            K = K2;
-        }
 
         if (N == 1) {
-            if (K >= 8) {
+            if (K3) {
                 vfloat32m8_t A01 = __riscv_vle32_v_f32m8(A, 8 * 8);
                 A0 = __riscv_vget_v_f32m8_f32m1(A01, 0);
                 A1 = __riscv_vget_v_f32m8_f32m1(A01, 1);
@@ -1605,7 +1606,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                 resultE = __riscv_vfmul_vf_f32m1(A6, B7, 8);
                 resultF = __riscv_vfmul_vf_f32m1(A7, B7, 8);
 
-                for (BLASLONG k = (K / 8); --k; ) {
+                for (BLASLONG k = K3; --k; ) {
                     A01 = __riscv_vle32_v_f32m8(A, 8 * 8);
                     A0 = __riscv_vget_v_f32m8_f32m1(A01, 0);
                     A1 = __riscv_vget_v_f32m8_f32m1(A01, 1);
@@ -1682,14 +1683,12 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                 result1 = __riscv_vfadd_vv_f32m1(result1, result5, 8);
                 resultC = __riscv_vfadd_vv_f32m1(resultC, result0, 8);
                 resultD = __riscv_vfadd_vv_f32m1(resultD, result1, 8);
-
-                K &= 7;
             } else {
                 resultC = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, 8));
                 resultD = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, 8));
             }
         } else if (N <= 4) {
-            if (K >= 2) {
+            if (K3) {
                 vfloat32m4_t A01 = __riscv_vle32_v_f32m4(A, 4 * 8);
                 A0 = __riscv_vget_v_f32m4_f32m1(A01, 0);
                 A1 = __riscv_vget_v_f32m4_f32m1(A01, 1);
@@ -1772,7 +1771,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                     result5 = __riscv_vfmul_vf_f32m1(A3, B6, 8);
                 }
 
-                for (BLASLONG k = (K / 2); --k; ) {
+                for (BLASLONG k = K3; --k; ) {
                     A01 = __riscv_vle32_v_f32m4(A, 4 * 8);
                     A0 = __riscv_vget_v_f32m4_f32m1(A01, 0);
                     A1 = __riscv_vget_v_f32m4_f32m1(A01, 1);
@@ -1876,8 +1875,6 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                     resultC = __riscv_vfadd_vv_f32m1(resultC, result4, 8);
                     resultD = __riscv_vfadd_vv_f32m1(resultD, result5, 8);
                 }
-
-                K &= 1;
             } else {
                 if (N == 4) {
                     result0 = __riscv_vreinterpret_v_u32m1_f32m1(__riscv_vmv_v_x_u32m1(0, 8));
@@ -1961,12 +1958,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
             }
         }
 
-#ifdef GEMM_BOTTOM_CHUNK
-        BLASLONG k = (N <= 4) ? 0 : 1;
-#else
-        BLASLONG k = 1;
-#endif
-        for (; k < K; k++) {
+        while (K--) {
             if (N & 4) {
                 B0 = B00[0];
                 B1 = B00[1];
@@ -2120,6 +2112,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
         }
 
         C = C0 + 16;
+        K = K2;
     } while (--M);
 }
 
@@ -2221,6 +2214,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
     BLASLONG n_top = 0;
     const BLASLONG m_edge = M & 15;
     const bool S = (M == (ldc & 0xF));
+    if (K <= 0) return 0;
 
     // -- MAIN PASS
 
