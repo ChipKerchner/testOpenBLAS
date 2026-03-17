@@ -818,7 +818,7 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
         vfloat32mf2_t result0, result1, result2, result3, result4, result5, result6, result7;
         vfloat32mf2_t result8, result9, resultA, resultB, resultC, resultD, resultE, resultF;
         vfloat32m1_t result00, result01, result02, result03, result04, result05;
-        vfloat32m1_t result08, result09, result0A, result0B, result0C, result0D;
+        vfloat32m1_t result08, result09, result0A, result0B;
         FLOAT r0, r1, r2, r8, r9, rA, rC, rD, rE, a0, a1, a2;
         FLOAT B0, B1, B2;
 #ifndef GEMM_NEW_PACKING
@@ -1320,17 +1320,17 @@ static void FORCEINLINE M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLONG 
             }
             if (M & 4) {
                 if (N & 2) {
-                    result0C = __riscv_vle32_v_f32m1(C,  4);
-                    result0D = __riscv_vle32_v_f32m1(C2, 4);
-                    result0C = __riscv_vfmacc_vf_f32m1(result0C, alpha, result09, 4);
-                    result0D = __riscv_vfmacc_vf_f32m1(result0D, alpha, result0A, 4);
-                    __riscv_vse32_v_f32m1(C,  result0C, 4);
-                    __riscv_vse32_v_f32m1(C2, result0D, 4);
+                    resultC = __riscv_vle32_v_f32mf2(C,  4);
+                    resultD = __riscv_vle32_v_f32mf2(C2, 4);
+                    resultC = __riscv_vfmacc_vf_f32mf2(resultC, alpha, __riscv_vlmul_trunc_v_f32m1_f32mf2(result09), 4);
+                    resultD = __riscv_vfmacc_vf_f32mf2(resultD, alpha, __riscv_vlmul_trunc_v_f32m1_f32mf2(result0A), 4);
+                    __riscv_vse32_v_f32mf2(C,  resultC, 4);
+                    __riscv_vse32_v_f32mf2(C2, resultD, 4);
                 }
                 if (N & 1) {
-                    result0B = __riscv_vle32_v_f32m1(C1, 4);
-                    result0B = __riscv_vfmacc_vf_f32m1(result0B, alpha, result08, 4);
-                    __riscv_vse32_v_f32m1(C1, result0B, 4);
+                    resultB = __riscv_vle32_v_f32mf2(C1, 4);
+                    resultB = __riscv_vfmacc_vf_f32mf2(resultB, alpha, __riscv_vlmul_trunc_v_f32m1_f32mf2(result08), 4);
+                    __riscv_vse32_v_f32mf2(C1, resultB, 4);
                 }
                 if (M & 3) {
                     if (N & 2) {
