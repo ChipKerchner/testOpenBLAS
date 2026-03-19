@@ -666,35 +666,18 @@ static FORCEINLINE FLOAT* M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLON
                 c18 = __riscv_vfmacc_vf_f32m8(c18, alpha, c28, N);
                 __riscv_vse32_v_f32m8(C, c18, N * 8);
             } else {
-                // Can swap A and B and remove transpose when compilers get better
-                FLOAT temp[8 * 8];
-                vfloat32m1x8_t c28 = __riscv_vcreate_v_f32m1x8(result0, result1, result2, result3, result4, result5, result6, result7);
-                __riscv_vsseg8e32_v_f32m1x8(temp, c28, N);
-                vfloat32m8_t c18 = __riscv_vle32_v_f32m8(temp, N * 8);
-                vfloat32m1_t c0 = __riscv_vle32_v_f32m1(C + (0 * ldc), N);
-                vfloat32m1_t c1 = __riscv_vle32_v_f32m1(C + (1 * ldc), N);
-                vfloat32m1_t c2 = __riscv_vle32_v_f32m1(C + (2 * ldc), N);
-                vfloat32m1_t c3 = __riscv_vle32_v_f32m1(C + (3 * ldc), N);
-                vfloat32m1_t c4 = __riscv_vle32_v_f32m1(C + (4 * ldc), N);
-                vfloat32m1_t c5 = __riscv_vle32_v_f32m1(C + (5 * ldc), N);
-                vfloat32m1_t c6 = __riscv_vle32_v_f32m1(C + (6 * ldc), N);
-                vfloat32m1_t c7 = __riscv_vle32_v_f32m1(C + (7 * ldc), N);
-                c0 = __riscv_vfmacc_vf_f32m1(c0, alpha, __riscv_vget_v_f32m8_f32m1(c18, 0), N);
-                c1 = __riscv_vfmacc_vf_f32m1(c1, alpha, __riscv_vget_v_f32m8_f32m1(c18, 1), N);
-                c2 = __riscv_vfmacc_vf_f32m1(c2, alpha, __riscv_vget_v_f32m8_f32m1(c18, 2), N);
-                c3 = __riscv_vfmacc_vf_f32m1(c3, alpha, __riscv_vget_v_f32m8_f32m1(c18, 3), N);
-                c4 = __riscv_vfmacc_vf_f32m1(c4, alpha, __riscv_vget_v_f32m8_f32m1(c18, 4), N);
-                c5 = __riscv_vfmacc_vf_f32m1(c5, alpha, __riscv_vget_v_f32m8_f32m1(c18, 5), N);
-                c6 = __riscv_vfmacc_vf_f32m1(c6, alpha, __riscv_vget_v_f32m8_f32m1(c18, 6), N);
-                c7 = __riscv_vfmacc_vf_f32m1(c7, alpha, __riscv_vget_v_f32m8_f32m1(c18, 7), N);
-                __riscv_vse32_v_f32m1(C + (0 * ldc), c0, N);
-                __riscv_vse32_v_f32m1(C + (1 * ldc), c1, N);
-                __riscv_vse32_v_f32m1(C + (2 * ldc), c2, N);
-                __riscv_vse32_v_f32m1(C + (3 * ldc), c3, N);
-                __riscv_vse32_v_f32m1(C + (4 * ldc), c4, N);
-                __riscv_vse32_v_f32m1(C + (5 * ldc), c5, N);
-                __riscv_vse32_v_f32m1(C + (6 * ldc), c6, N);
-                __riscv_vse32_v_f32m1(C + (7 * ldc), c7, N);
+                vfloat32m1x4_t c14 = __riscv_vlsseg4e32_v_f32m1x4(C + 0, ldc * sizeof(float), N);
+                vfloat32m1x4_t c24 = __riscv_vlsseg4e32_v_f32m1x4(C + 4, ldc * sizeof(float), N);
+                c14 = __riscv_vset_v_f32m1_f32m1x4(c14, 0, __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x4_f32m1(c14, 0), alpha, result0, N));
+                c14 = __riscv_vset_v_f32m1_f32m1x4(c14, 1, __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x4_f32m1(c14, 1), alpha, result1, N));
+                c14 = __riscv_vset_v_f32m1_f32m1x4(c14, 2, __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x4_f32m1(c14, 2), alpha, result2, N));
+                c14 = __riscv_vset_v_f32m1_f32m1x4(c14, 3, __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x4_f32m1(c14, 3), alpha, result3, N));
+                c24 = __riscv_vset_v_f32m1_f32m1x4(c24, 0, __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x4_f32m1(c24, 0), alpha, result4, N));
+                c24 = __riscv_vset_v_f32m1_f32m1x4(c24, 1, __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x4_f32m1(c24, 1), alpha, result5, N));
+                c24 = __riscv_vset_v_f32m1_f32m1x4(c24, 2, __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x4_f32m1(c24, 2), alpha, result6, N));
+                c24 = __riscv_vset_v_f32m1_f32m1x4(c24, 3, __riscv_vfmacc_vf_f32m1(__riscv_vget_v_f32m1x4_f32m1(c24, 3), alpha, result7, N));
+                __riscv_vssseg4e32_v_f32m1x4(C + 0, ldc * sizeof(float), c14, N);
+                __riscv_vssseg4e32_v_f32m1x4(C + 4, ldc * sizeof(float), c24, N);
             }
         }
         FLOAT* C0;
@@ -1144,23 +1127,18 @@ static FORCEINLINE FLOAT* M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLON
                     c14 = __riscv_vfmacc_vf_f32m4(c14, alpha, c24, 4 * 8);
                     __riscv_vse32_v_f32m4(C, c14, 4 * 8);
                 } else {
-                    // Can swap A and B and remove transpose when compilers get better
-                    FLOAT temp[8 * 4];
-                    vfloat32mf2x8_t c18 = __riscv_vcreate_v_f32mf2x8(result0, result1, result2, result3, result4, result5, result6, result7);
-                    __riscv_vsseg8e32_v_f32mf2x8(temp, c18, 4);
-                    vfloat32m4_t c14 = __riscv_vle32_v_f32m4(temp, 4 * 8);
-                    vfloat32m1_t c0 = __riscv_vle32_v_f32m1(C + (0 * ldc), 8);
-                    vfloat32m1_t c1 = __riscv_vle32_v_f32m1(C + (1 * ldc), 8);
-                    vfloat32m1_t c2 = __riscv_vle32_v_f32m1(C + (2 * ldc), 8);
-                    vfloat32m1_t c3 = __riscv_vle32_v_f32m1(C + (3 * ldc), 8);
-                    c0 = __riscv_vfmacc_vf_f32m1(c0, alpha, __riscv_vget_v_f32m4_f32m1(c14, 0), 8);
-                    c1 = __riscv_vfmacc_vf_f32m1(c1, alpha, __riscv_vget_v_f32m4_f32m1(c14, 1), 8);
-                    c2 = __riscv_vfmacc_vf_f32m1(c2, alpha, __riscv_vget_v_f32m4_f32m1(c14, 2), 8);
-                    c3 = __riscv_vfmacc_vf_f32m1(c3, alpha, __riscv_vget_v_f32m4_f32m1(c14, 3), 8);
-                    __riscv_vse32_v_f32m1(C + (0 * ldc), c0, 8);
-                    __riscv_vse32_v_f32m1(C + (1 * ldc), c1, 8);
-                    __riscv_vse32_v_f32m1(C + (2 * ldc), c2, 8);
-                    __riscv_vse32_v_f32m1(C + (3 * ldc), c3, 8);
+                    vfloat32mf2x4_t c14 = __riscv_vlsseg4e32_v_f32mf2x4(C + 0, ldc * sizeof(float), 4);
+                    vfloat32mf2x4_t c24 = __riscv_vlsseg4e32_v_f32mf2x4(C + 4, ldc * sizeof(float), 4);
+                    c14 = __riscv_vset_v_f32mf2_f32mf2x4(c14, 0, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x4_f32mf2(c14, 0), alpha, result0, 4));
+                    c14 = __riscv_vset_v_f32mf2_f32mf2x4(c14, 1, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x4_f32mf2(c14, 1), alpha, result1, 4));
+                    c14 = __riscv_vset_v_f32mf2_f32mf2x4(c14, 2, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x4_f32mf2(c14, 2), alpha, result2, 4));
+                    c14 = __riscv_vset_v_f32mf2_f32mf2x4(c14, 3, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x4_f32mf2(c14, 3), alpha, result3, 4));
+                    c24 = __riscv_vset_v_f32mf2_f32mf2x4(c24, 0, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x4_f32mf2(c24, 0), alpha, result4, 4));
+                    c24 = __riscv_vset_v_f32mf2_f32mf2x4(c24, 1, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x4_f32mf2(c24, 1), alpha, result5, 4));
+                    c24 = __riscv_vset_v_f32mf2_f32mf2x4(c24, 2, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x4_f32mf2(c24, 2), alpha, result6, 4));
+                    c24 = __riscv_vset_v_f32mf2_f32mf2x4(c24, 3, __riscv_vfmacc_vf_f32mf2(__riscv_vget_v_f32mf2x4_f32mf2(c24, 3), alpha, result7, 4));
+                    __riscv_vssseg4e32_v_f32mf2x4(C + 0, ldc * sizeof(float), c14, 4);
+                    __riscv_vssseg4e32_v_f32mf2x4(C + 4, ldc * sizeof(float), c24, 4);
                 }
             }
             FLOAT* C0;
