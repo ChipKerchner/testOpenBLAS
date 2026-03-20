@@ -1322,31 +1322,31 @@ static FORCEINLINE FLOAT* M_TAIL(BLASLONG K, const BLASLONG M, const BLASLONG N,
         A1 = A0 + (K * (M & 0x8));
     } else
 #endif
-#ifdef GCC_COMPILER
     {
+#ifdef GCC_COMPILER
         A1 = A0;
-    }
 #endif
+    }
 #ifndef GEMM_NEW_PACKING
     if (M & 2) {
         A2 = A0 + (K * (M & 0xC));
     } else
 #endif
-#ifdef GCC_COMPILER
     {
+#ifdef GCC_COMPILER
         A2 = A0;
-    }
 #endif
+    }
 #ifndef GEMM_NEW_PACKING
     if (M & 1) {
         A3 = A0 + (K * (M & 0xE));
     } else
 #endif
-#ifdef GCC_COMPILER
     {
+#ifdef GCC_COMPILER
         A3 = A0;
-    }
 #endif
+    }
     if (M & 8) {
         if (M & 4) {
             if (M & 2) {
