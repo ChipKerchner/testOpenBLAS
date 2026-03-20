@@ -1159,7 +1159,9 @@ int main(int argc, char **argv)
 
 #ifdef TEST_MATRIX
     init(input_matrix0, input_matrix1, output_matrix0, in, out, K);
+#ifdef TEST_INITIALIZE
     memcpy(output_matrix2, output_matrix0, M0 * N0 * sizeof(FLOAT));
+#endif
 #else
     init(input_matrix0, input_matrix1, input_vector0, input_vector1, M0, N0, in, input, N0, inc);
 #if defined(TEST_BFLOAT) || defined(TEST_FLOAT16)
@@ -1245,7 +1247,11 @@ again:
             memcpy(input_matrix11, input_matrix1, K * out * sizeof(IFLOAT));
 #endif
 #endif
+#if defined(TEST_PACKING) || defined(TEST_INITIALIZE)
             test_ptr(in, out, K, alpha, input_matrix01, input_matrix11, output_matrix1, in);
+#else
+            test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
+#endif
           }
         } else {
           test_ptr(in, out, K, alpha, input_matrix0, input_matrix1, output_matrix1, in);
