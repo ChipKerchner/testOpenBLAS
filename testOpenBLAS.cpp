@@ -721,6 +721,10 @@ int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N,
         m = i;
         n = j;
       }
+      if (isnan(out1[j])) {
+        fprintf(stderr, "Nan found\n");
+        return 1;
+      }
     }
   }
   *err = maxOut;
@@ -764,9 +768,13 @@ int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG 
   BLASLONG i = 0;
   for (BLASLONG j = 0; j < out * inc; j += inc) {
     FLOAT diff = fabs(output0[j] - output1[j]);
-    if (diff > maxOut) {
+    if (diff > maxOut){
       maxOut = diff;
       i = j;
+    }
+    if (isnan(output1[j])) {
+      fprintf(stderr, "Nan found\n");
+      return 1;
     }
   }
   *err = maxOut;
