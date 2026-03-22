@@ -663,7 +663,7 @@ static FORCEINLINE FLOAT* M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLON
             if (S2) {
                 vfloat32m8_t c18 = __riscv_vle32_v_f32m8(C, N * 8);
                 vfloat32m8_t c28 = __riscv_vcreate_v_f32m1_f32m8(result0, result1, result2, result3, result4, result5, result6, result7);
-                c18 = __riscv_vfmacc_vf_f32m8(c18, alpha, c28, N);
+                c18 = __riscv_vfmacc_vf_f32m8(c18, alpha, c28, N * 8);
                 __riscv_vse32_v_f32m8(C, c18, N * 8);
             } else {
                 vfloat32m1x4_t c14 = __riscv_vlsseg4e32_v_f32m1x4(C + 0, ldc * sizeof(float), N);
