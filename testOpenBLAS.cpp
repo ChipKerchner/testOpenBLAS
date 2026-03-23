@@ -21,7 +21,7 @@
 #define TEST_VLEN        "VLEN128"
 #endif
 
-#define TEST_VERIFY     // Verify
+//#define TEST_VERIFY     // Verify
 
 #ifdef TEST_VERIFY
 #define TEST_PACKING    // Include packing
@@ -218,20 +218,6 @@
 #define TRANS_EPSILON    1
 #else
 #define TRANS_EPSILON    8
-#endif
-
-#ifdef TEST_DOUBLE
-#ifdef RVV_256
-#define SET_N            8
-#else
-#define SET_N            4
-#endif
-#else
-#ifdef RVV_256
-#define SET_N            16
-#else
-#define SET_N            8
-#endif
 #endif
 
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
@@ -1215,8 +1201,6 @@ again:
 #ifdef TEST_MATRIX
 #ifdef TEST_INITIALIZE
         memcpy(output_matrix1, output_matrix2, M0 * N0 * sizeof(FLOAT));
-#else
-        memset_zero(output_matrix1, MIN(N0, SET_N) * sizeof(FLOAT), false);
 #endif
 #ifdef FASTER_GENERIC_C
         if (test >= TEST_GENERIC) {
