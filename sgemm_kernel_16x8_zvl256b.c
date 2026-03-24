@@ -1434,7 +1434,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
     }
 #endif
 #ifdef GEMM_BOTTOM_CHUNK
-    FLOAT K3;
+    BLASLONG K3;
     if (N == 1) {
         K3 = (K / 8);
         K = (K & 7) + 1;
