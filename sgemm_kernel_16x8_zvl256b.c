@@ -80,15 +80,15 @@ static FORCEINLINE FLOAT* M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLON
                 B += (N * 8);
 
 #ifdef GEMM_NEW_PACKING
-                resultE = __riscv_vfmul_vf_f32m1(B0, A0[0 + (M & 0x6) + (M * 0)], N);
-                result0 = __riscv_vfmul_vf_f32m1(B1, A0[0 + (M & 0x6) + (M * 1)], N);
-                result1 = __riscv_vfmul_vf_f32m1(B2, A0[0 + (M & 0x6) + (M * 2)], N);
-                result2 = __riscv_vfmul_vf_f32m1(B3, A0[0 + (M & 0x6) + (M * 3)], N);
-                result3 = __riscv_vfmul_vf_f32m1(B4, A0[0 + (M & 0x6) + (M * 4)], N);
-                result4 = __riscv_vfmul_vf_f32m1(B5, A0[0 + (M & 0x6) + (M * 5)], N);
-                result5 = __riscv_vfmul_vf_f32m1(B6, A0[0 + (M & 0x6) + (M * 6)], N);
-                result6 = __riscv_vfmul_vf_f32m1(B7, A0[0 + (M & 0x6) + (M * 7)], N);
-                A0 += (M * 8);
+                resultE = __riscv_vfmul_vf_f32m1(B0, A0[0 + (1 * 0)], N);
+                result0 = __riscv_vfmul_vf_f32m1(B1, A0[0 + (1 * 1)], N);
+                result1 = __riscv_vfmul_vf_f32m1(B2, A0[0 + (1 * 2)], N);
+                result2 = __riscv_vfmul_vf_f32m1(B3, A0[0 + (1 * 3)], N);
+                result3 = __riscv_vfmul_vf_f32m1(B4, A0[0 + (1 * 4)], N);
+                result4 = __riscv_vfmul_vf_f32m1(B5, A0[0 + (1 * 5)], N);
+                result5 = __riscv_vfmul_vf_f32m1(B6, A0[0 + (1 * 6)], N);
+                result6 = __riscv_vfmul_vf_f32m1(B7, A0[0 + (1 * 7)], N);
+                A0 += (1 * 8);
 #else
                 resultE = __riscv_vfmul_vf_f32m1(B0, A3[0 + (1 * 0)], N);
                 result0 = __riscv_vfmul_vf_f32m1(B1, A3[0 + (1 * 1)], N);
@@ -116,15 +116,15 @@ static FORCEINLINE FLOAT* M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLON
                     B += (N * 8);
 
 #ifdef GEMM_NEW_PACKING
-                    resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0x6) + (M * 0)], B0, N);
-                    result0 = __riscv_vfmacc_vf_f32m1(result0, A0[0 + (M & 0x6) + (M * 1)], B1, N);
-                    result1 = __riscv_vfmacc_vf_f32m1(result1, A0[0 + (M & 0x6) + (M * 2)], B2, N);
-                    result2 = __riscv_vfmacc_vf_f32m1(result2, A0[0 + (M & 0x6) + (M * 3)], B3, N);
-                    result3 = __riscv_vfmacc_vf_f32m1(result3, A0[0 + (M & 0x6) + (M * 4)], B4, N);
-                    result4 = __riscv_vfmacc_vf_f32m1(result4, A0[0 + (M & 0x6) + (M * 5)], B5, N);
-                    result5 = __riscv_vfmacc_vf_f32m1(result5, A0[0 + (M & 0x6) + (M * 6)], B6, N);
-                    result6 = __riscv_vfmacc_vf_f32m1(result6, A0[0 + (M & 0x6) + (M * 7)], B7, N);
-                    A0 += (M * 8);
+                    resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (1 * 0)], B0, N);
+                    result0 = __riscv_vfmacc_vf_f32m1(result0, A0[0 + (1 * 1)], B1, N);
+                    result1 = __riscv_vfmacc_vf_f32m1(result1, A0[0 + (1 * 2)], B2, N);
+                    result2 = __riscv_vfmacc_vf_f32m1(result2, A0[0 + (1 * 3)], B3, N);
+                    result3 = __riscv_vfmacc_vf_f32m1(result3, A0[0 + (1 * 4)], B4, N);
+                    result4 = __riscv_vfmacc_vf_f32m1(result4, A0[0 + (1 * 5)], B5, N);
+                    result5 = __riscv_vfmacc_vf_f32m1(result5, A0[0 + (1 * 6)], B6, N);
+                    result6 = __riscv_vfmacc_vf_f32m1(result6, A0[0 + (1 * 7)], B7, N);
+                    A0 += (1 * 8);
 #else
                     resultE = __riscv_vfmacc_vf_f32m1(resultE, A3[0 + (1 * 0)], B0, N);
                     result0 = __riscv_vfmacc_vf_f32m1(result0, A3[0 + (1 * 1)], B1, N);
@@ -159,20 +159,20 @@ static FORCEINLINE FLOAT* M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLON
 
 #ifdef GEMM_NEW_PACKING
                 if (M & 2) {
-                    resultC = __riscv_vfmul_vf_f32m1(B0, A0[0 + (M & 0x4) + (M * 0)], N);
-                    resultD = __riscv_vfmul_vf_f32m1(B0, A0[1 + (M & 0x4) + (M * 0)], N);
-                    result0 = __riscv_vfmul_vf_f32m1(B1, A0[0 + (M & 0x4) + (M * 1)], N);
-                    result1 = __riscv_vfmul_vf_f32m1(B1, A0[1 + (M & 0x4) + (M * 1)], N);
-                    result4 = __riscv_vfmul_vf_f32m1(B2, A0[0 + (M & 0x4) + (M * 2)], N);
-                    result5 = __riscv_vfmul_vf_f32m1(B2, A0[1 + (M & 0x4) + (M * 2)], N);
-                    result8 = __riscv_vfmul_vf_f32m1(B3, A0[0 + (M & 0x4) + (M * 3)], N);
-                    result9 = __riscv_vfmul_vf_f32m1(B3, A0[1 + (M & 0x4) + (M * 3)], N);
+                    resultC = __riscv_vfmul_vf_f32m1(B0, A0[0 + (M * 0)], N);
+                    resultD = __riscv_vfmul_vf_f32m1(B0, A0[1 + (M * 0)], N);
+                    result0 = __riscv_vfmul_vf_f32m1(B1, A0[0 + (M * 1)], N);
+                    result1 = __riscv_vfmul_vf_f32m1(B1, A0[1 + (M * 1)], N);
+                    result4 = __riscv_vfmul_vf_f32m1(B2, A0[0 + (M * 2)], N);
+                    result5 = __riscv_vfmul_vf_f32m1(B2, A0[1 + (M * 2)], N);
+                    result8 = __riscv_vfmul_vf_f32m1(B3, A0[0 + (M * 3)], N);
+                    result9 = __riscv_vfmul_vf_f32m1(B3, A0[1 + (M * 3)], N);
                 }
                 if (M & 1) {
-                    resultE = __riscv_vfmul_vf_f32m1(B0, A0[0 + (M & 0x6) + (M * 0)], N);
-                    result2 = __riscv_vfmul_vf_f32m1(B1, A0[0 + (M & 0x6) + (M * 1)], N);
-                    result6 = __riscv_vfmul_vf_f32m1(B2, A0[0 + (M & 0x6) + (M * 2)], N);
-                    resultA = __riscv_vfmul_vf_f32m1(B3, A0[0 + (M & 0x6) + (M * 3)], N);
+                    resultE = __riscv_vfmul_vf_f32m1(B0, A0[0 + (M & 0x2) + (M * 0)], N);
+                    result2 = __riscv_vfmul_vf_f32m1(B1, A0[0 + (M & 0x2) + (M * 1)], N);
+                    result6 = __riscv_vfmul_vf_f32m1(B2, A0[0 + (M & 0x2) + (M * 2)], N);
+                    resultA = __riscv_vfmul_vf_f32m1(B3, A0[0 + (M & 0x2) + (M * 3)], N);
                 }
                 A0 += (M * 4);
 #else
@@ -208,20 +208,20 @@ static FORCEINLINE FLOAT* M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLON
 
 #ifdef GEMM_NEW_PACKING
                     if (M & 2) {
-                        resultC = __riscv_vfmacc_vf_f32m1(resultC, A0[0 + (M & 0x4) + (M * 0)], B0, N);
-                        resultD = __riscv_vfmacc_vf_f32m1(resultD, A0[1 + (M & 0x4) + (M * 0)], B0, N);
-                        result0 = __riscv_vfmacc_vf_f32m1(result0, A0[0 + (M & 0x4) + (M * 1)], B1, N);
-                        result1 = __riscv_vfmacc_vf_f32m1(result1, A0[1 + (M & 0x4) + (M * 1)], B1, N);
-                        result4 = __riscv_vfmacc_vf_f32m1(result4, A0[0 + (M & 0x4) + (M * 2)], B2, N);
-                        result5 = __riscv_vfmacc_vf_f32m1(result5, A0[1 + (M & 0x4) + (M * 2)], B2, N);
-                        result8 = __riscv_vfmacc_vf_f32m1(result8, A0[0 + (M & 0x4) + (M * 3)], B3, N);
-                        result9 = __riscv_vfmacc_vf_f32m1(result9, A0[1 + (M & 0x4) + (M * 3)], B3, N);
+                        resultC = __riscv_vfmacc_vf_f32m1(resultC, A0[0 + (M * 0)], B0, N);
+                        resultD = __riscv_vfmacc_vf_f32m1(resultD, A0[1 + (M * 0)], B0, N);
+                        result0 = __riscv_vfmacc_vf_f32m1(result0, A0[0 + (M * 1)], B1, N);
+                        result1 = __riscv_vfmacc_vf_f32m1(result1, A0[1 + (M * 1)], B1, N);
+                        result4 = __riscv_vfmacc_vf_f32m1(result4, A0[0 + (M * 2)], B2, N);
+                        result5 = __riscv_vfmacc_vf_f32m1(result5, A0[1 + (M * 2)], B2, N);
+                        result8 = __riscv_vfmacc_vf_f32m1(result8, A0[0 + (M * 3)], B3, N);
+                        result9 = __riscv_vfmacc_vf_f32m1(result9, A0[1 + (M * 3)], B3, N);
                     }
                     if (M & 1) {
-                        resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0x6) + (M * 0)], B0, N);
-                        result2 = __riscv_vfmacc_vf_f32m1(result2, A0[0 + (M & 0x6) + (M * 1)], B1, N);
-                        result6 = __riscv_vfmacc_vf_f32m1(result6, A0[0 + (M & 0x6) + (M * 2)], B2, N);
-                        resultA = __riscv_vfmacc_vf_f32m1(resultA, A0[0 + (M & 0x6) + (M * 3)], B3, N);
+                        resultE = __riscv_vfmacc_vf_f32m1(resultE, A0[0 + (M & 0x2) + (M * 0)], B0, N);
+                        result2 = __riscv_vfmacc_vf_f32m1(result2, A0[0 + (M & 0x2) + (M * 1)], B1, N);
+                        result6 = __riscv_vfmacc_vf_f32m1(result6, A0[0 + (M & 0x2) + (M * 2)], B2, N);
+                        resultA = __riscv_vfmacc_vf_f32m1(resultA, A0[0 + (M & 0x2) + (M * 3)], B3, N);
                     }
                     A0 += (M * 4);
 #else
@@ -1492,7 +1492,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                 B5 = B00[5];
                 B6 = B00[6];
                 B7 = B00[7];
-                B00 += (8 * N);
+                B00 += (8 * 1);
 #else
                 B0 = B02[0];
                 B1 = B02[1];
@@ -1502,7 +1502,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                 B5 = B02[5];
                 B6 = B02[6];
                 B7 = B02[7];
-                B02 += (8 * N);
+                B02 += (8 * 1);
 #endif
 
                 resultC = __riscv_vfmul_vf_f32m1(A0, B0, 8);
@@ -1555,7 +1555,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                     B5 = B00[5];
                     B6 = B00[6];
                     B7 = B00[7];
-                    B00 += (8 * N);
+                    B00 += (8 * 1);
 #else
                     B0 = B02[0];
                     B1 = B02[1];
@@ -1565,7 +1565,7 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                     B5 = B02[5];
                     B6 = B02[6];
                     B7 = B02[7];
-                    B02 += (8 * N);
+                    B02 += (8 * 1);
 #endif
 
                     resultC = __riscv_vfmacc_vf_f32m1(resultC, B0, A0, 8);
@@ -1640,14 +1640,14 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                 }
 #ifdef GEMM_NEW_PACKING
                 if (N & 2) {
-                    B0 = B00[0 + (N & 4) + (N * 0)];
-                    B1 = B00[1 + (N & 4) + (N * 0)];
-                    B4 = B00[0 + (N & 4) + (N * 1)];
-                    B5 = B00[1 + (N & 4) + (N * 1)];
+                    B0 = B00[0 + (N * 0)];
+                    B1 = B00[1 + (N * 0)];
+                    B4 = B00[0 + (N * 1)];
+                    B5 = B00[1 + (N * 1)];
                 }
                 if (N & 1) {
-                    B2 = B00[0 + (N & 6) + (N * 0)];
-                    B6 = B00[0 + (N & 6) + (N * 1)];
+                    B2 = B00[0 + (N & 2) + (N * 0)];
+                    B6 = B00[0 + (N & 2) + (N * 1)];
                 }
                 B00 += (N * 2);
 #else
@@ -1723,14 +1723,14 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
                     }
 #ifdef GEMM_NEW_PACKING
                     if (N & 2) {
-                        B0 = B00[0 + (N & 4) + (N * 0)];
-                        B1 = B00[1 + (N & 4) + (N * 0)];
-                        B4 = B00[0 + (N & 4) + (N * 1)];
-                        B5 = B00[1 + (N & 4) + (N * 1)];
+                        B0 = B00[0 + (N * 0)];
+                        B1 = B00[1 + (N * 0)];
+                        B4 = B00[0 + (N * 1)];
+                        B5 = B00[1 + (N * 1)];
                     }
                     if (N & 1) {
-                        B2 = B00[0 + (N & 6) + (N * 0)];
-                        B6 = B00[0 + (N & 6) + (N * 1)];
+                        B2 = B00[0 + (N & 2) + (N * 0)];
+                        B6 = B00[0 + (N & 2) + (N * 1)];
                     }
                     B00 += (N * 2);
 #else
