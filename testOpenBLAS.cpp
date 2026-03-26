@@ -21,7 +21,7 @@
 #define TEST_VLEN        "VLEN128"
 #endif
 
-//#define TEST_VERIFY     // Verify
+#define TEST_VERIFY     // Verify
 
 #ifdef TEST_VERIFY
 #define TEST_PACKING    // Include packing
@@ -33,7 +33,7 @@
 #define TEST_VECTOR   // Test GEMV
 #endif
 
-#define TEST_FLOAT    // Test FP32
+//#define TEST_FLOAT    // Test FP32
 #ifndef TEST_FLOAT
 #define TEST_DOUBLE   // Test FP64
 #ifndef TEST_DOUBLE
@@ -247,7 +247,7 @@ FORCEINLINE timer_t get_rvv_timer()
 
 #include "gemm_copy_kernel.h"
 
-#if defined(TEST_FLOAT) && defined(GEMM_RIGHT_CHUNK)
+#if (defined(TEST_FLOAT) || defined(TEST_DOUBLE)) && (defined(GEMM_RIGHT_CHUNK) || defined(GEMM_BOTTOM_CHUNK))
 #undef TRANS_EPSILON
 #define TRANS_EPSILON    (8 * 8)
 #endif
@@ -715,7 +715,7 @@ int verifyOut(FLOAT *output0, FLOAT *output1, FLOAT tol, BLASLONG M, BLASLONG N,
   }
   *err = maxOut;
   if (maxOut > tol) {
-    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld %4ld (%8.6f %8.6f %4ld %4ld %4ld %d %d - %10u)\n\n", TEST_STR, str, output0[(n * M) + m], output1[(n * M) + m], m, n, maxOut, tol, M, N, K, orient, orient2, openblas_seed);
+    fprintf(stderr, "Bad %s %s result %13.4f %13.4f %4ld %4ld (%8.6f %8.6f %4ld %4ld %4ld %d %d - %10u)\n\n", TEST_STR, str, output0[(n * M) + m], output1[(n * M) + m], n, m, maxOut, tol, N, M, K, orient, orient2, openblas_seed);
     return 1;
   }
   return 0;
@@ -754,7 +754,7 @@ int verifyOut(FLOAT *output0, FLOAT *output1, BLASLONG out, FLOAT tol, BLASLONG 
   BLASLONG i = 0;
   for (BLASLONG j = 0; j < out * inc; j += inc) {
     FLOAT diff = fabs(output0[j] - output1[j]);
-    if (diff > maxOut){
+    if (diff > maxOut) {
       maxOut = diff;
       i = j;
     }
