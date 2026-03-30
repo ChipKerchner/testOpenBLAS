@@ -1724,24 +1724,24 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
             *A += 8;
 
             if (N & 4) {
-                result0 = __riscv_vfmul_vf_f64m1(A0, B0, 8);
-                result1 = __riscv_vfmul_vf_f64m1(A1, B0, 8);
-                result2 = __riscv_vfmul_vf_f64m1(A0, B1, 8);
-                result3 = __riscv_vfmul_vf_f64m1(A1, B1, 8);
-                result4 = __riscv_vfmul_vf_f64m1(A0, B2, 8);
-                result5 = __riscv_vfmul_vf_f64m1(A1, B2, 8);
-                result6 = __riscv_vfmul_vf_f64m1(A0, B3, 8);
-                result7 = __riscv_vfmul_vf_f64m1(A1, B3, 8);
+                result0 = __riscv_vfmul_vf_f64m1(A0, B0, 4);
+                result1 = __riscv_vfmul_vf_f64m1(A1, B0, 4);
+                result2 = __riscv_vfmul_vf_f64m1(A0, B1, 4);
+                result3 = __riscv_vfmul_vf_f64m1(A1, B1, 4);
+                result4 = __riscv_vfmul_vf_f64m1(A0, B2, 4);
+                result5 = __riscv_vfmul_vf_f64m1(A1, B2, 4);
+                result6 = __riscv_vfmul_vf_f64m1(A0, B3, 4);
+                result7 = __riscv_vfmul_vf_f64m1(A1, B3, 4);
             }
             if (N & 2) {
-                result8 = __riscv_vfmul_vf_f64m1(A0, B4, 8);
-                result9 = __riscv_vfmul_vf_f64m1(A1, B4, 8);
-                resultA = __riscv_vfmul_vf_f64m1(A0, B5, 8);
-                resultB = __riscv_vfmul_vf_f64m1(A1, B5, 8);
+                result8 = __riscv_vfmul_vf_f64m1(A0, B4, 4);
+                result9 = __riscv_vfmul_vf_f64m1(A1, B4, 4);
+                resultA = __riscv_vfmul_vf_f64m1(A0, B5, 4);
+                resultB = __riscv_vfmul_vf_f64m1(A1, B5, 4);
             }
             if (N & 1) {
-                resultC = __riscv_vfmul_vf_f64m1(A0, B6, 8);
-                resultD = __riscv_vfmul_vf_f64m1(A1, B6, 8);
+                resultC = __riscv_vfmul_vf_f64m1(A0, B6, 4);
+                resultD = __riscv_vfmul_vf_f64m1(A1, B6, 4);
             }
         }
 
@@ -1782,24 +1782,24 @@ static void FORCEINLINE N_TAIL_ONE(BLASLONG K, BLASLONG M, const BLASLONG N, FLO
             *A += 8;
 
             if (N & 4) {
-                result0 = __riscv_vfmacc_vf_f64m1(result0, B0, A0, 8);
-                result1 = __riscv_vfmacc_vf_f64m1(result1, B0, A1, 8);
-                result2 = __riscv_vfmacc_vf_f64m1(result2, B1, A0, 8);
-                result3 = __riscv_vfmacc_vf_f64m1(result3, B1, A1, 8);
-                result4 = __riscv_vfmacc_vf_f64m1(result4, B2, A0, 8);
-                result5 = __riscv_vfmacc_vf_f64m1(result5, B2, A1, 8);
-                result6 = __riscv_vfmacc_vf_f64m1(result6, B3, A0, 8);
-                result7 = __riscv_vfmacc_vf_f64m1(result7, B3, A1, 8);
+                result0 = __riscv_vfmacc_vf_f64m1(result0, B0, A0, 4);
+                result1 = __riscv_vfmacc_vf_f64m1(result1, B0, A1, 4);
+                result2 = __riscv_vfmacc_vf_f64m1(result2, B1, A0, 4);
+                result3 = __riscv_vfmacc_vf_f64m1(result3, B1, A1, 4);
+                result4 = __riscv_vfmacc_vf_f64m1(result4, B2, A0, 4);
+                result5 = __riscv_vfmacc_vf_f64m1(result5, B2, A1, 4);
+                result6 = __riscv_vfmacc_vf_f64m1(result6, B3, A0, 4);
+                result7 = __riscv_vfmacc_vf_f64m1(result7, B3, A1, 4);
             }
             if (N & 2) {
-                result8 = __riscv_vfmacc_vf_f64m1(result8, B4, A0, 8);
-                result9 = __riscv_vfmacc_vf_f64m1(result9, B4, A1, 8);
-                resultA = __riscv_vfmacc_vf_f64m1(resultA, B5, A0, 8);
-                resultB = __riscv_vfmacc_vf_f64m1(resultB, B5, A1, 8);
+                result8 = __riscv_vfmacc_vf_f64m1(result8, B4, A0, 4);
+                result9 = __riscv_vfmacc_vf_f64m1(result9, B4, A1, 4);
+                resultA = __riscv_vfmacc_vf_f64m1(resultA, B5, A0, 4);
+                resultB = __riscv_vfmacc_vf_f64m1(resultB, B5, A1, 4);
             }
             if (N & 1) {
-                resultC = __riscv_vfmacc_vf_f64m1(resultC, B6, A0, 8);
-                resultD = __riscv_vfmacc_vf_f64m1(resultD, B6, A1, 8);
+                resultC = __riscv_vfmacc_vf_f64m1(resultC, B6, A0, 4);
+                resultD = __riscv_vfmacc_vf_f64m1(resultD, B6, A1, 4);
             }
         }
 
