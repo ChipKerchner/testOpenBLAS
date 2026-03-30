@@ -427,7 +427,7 @@ static FORCEINLINE FLOAT* M_TAIL_ONE(BLASLONG K, const BLASLONG M, const BLASLON
         } else
 #endif
         {
-            vfloat64m2_t B0 = __riscv_vle64_v_f64m2(B, N);
+            B0 = __riscv_vle64_v_f64m2(B, N);
 
             if (M & 4) {
                 A00 = A0[0];
