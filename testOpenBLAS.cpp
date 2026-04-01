@@ -1187,8 +1187,10 @@ int main(int argc, char **argv)
 #else
     if (test == TEST_RVV) {
 #endif
+#ifdef TEST_PACKING
       memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
       memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
+#endif
     }
 #endif
 #endif
