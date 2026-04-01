@@ -661,8 +661,11 @@ void memset_zero(void *input, BLASLONG size, bool dir)
     }
   }
 }
+
+#define memset_test(ptr, ch, size)   memset_zero(ptr, size, false)
 #else
 #define memset_zero(ptr, size, dir)  memset(ptr, 0, size)
+#define memset_test(ptr, ch, size)   memset(ptr, ch, size)
 #endif
 
 void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
@@ -688,8 +691,8 @@ void init(IFLOAT *input_matrix, IFLOAT *input_matrix2, FLOAT *output_matrix,
     }
   }
 #else
-  memset(input_matrix, 0, M * K * sizeof(IFLOAT));
-  memset(input_matrix2, 0, N * K * sizeof(IFLOAT));
+  memset_test(input_matrix, 0, M * K * sizeof(IFLOAT));
+  memset_test(input_matrix2, 0, N * K * sizeof(IFLOAT));
 #endif
 }
 
@@ -1181,15 +1184,15 @@ int main(int argc, char **argv)
 #else
     bool warmup = false;
 #ifdef TEST_MATRIX
-    memset(output_matrix1, 0, M0 * N0 * sizeof(FLOAT));
+    memset_test(output_matrix1, 0, M0 * N0 * sizeof(FLOAT));
 #ifdef FASTER_GENERIC_C
     if (test >= TEST_GENERIC) {
 #else
     if (test == TEST_RVV) {
 #endif
 #ifdef TEST_PACKING
-      memset(input_matrix01, 0, in * K * sizeof(IFLOAT));
-      memset(input_matrix11, 0, K * out * sizeof(IFLOAT));
+      memset_test(input_matrix01, 0, in * K * sizeof(IFLOAT));
+      memset_test(input_matrix11, 0, K * out * sizeof(IFLOAT));
 #endif
     }
 #endif
