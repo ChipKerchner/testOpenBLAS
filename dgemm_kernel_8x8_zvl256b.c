@@ -1654,27 +1654,16 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             B += 8;
 
             vfloat64m2_t A00 = __riscv_vle64_v_f64m2( A, 8 );
-            vfloat64m1_t A0 = __riscv_vget_v_f64m2_f64m1(A00, 0);
-            vfloat64m1_t A1 = __riscv_vget_v_f64m2_f64m1(A00, 1);
             A += 8;
 
-            // LMUL = 2 does worst here
-            vfloat64m1_t result0 = __riscv_vfmul_vf_f64m1( A0, B0, 4 );
-            vfloat64m1_t result1 = __riscv_vfmul_vf_f64m1( A1, B0, 4 );
-            vfloat64m1_t result2 = __riscv_vfmul_vf_f64m1( A0, B1, 4 );
-            vfloat64m1_t result3 = __riscv_vfmul_vf_f64m1( A1, B1, 4 );
-            vfloat64m1_t result4 = __riscv_vfmul_vf_f64m1( A0, B2, 4 );
-            vfloat64m1_t result5 = __riscv_vfmul_vf_f64m1( A1, B2, 4 );
-            vfloat64m1_t result6 = __riscv_vfmul_vf_f64m1( A0, B3, 4 );
-            vfloat64m1_t result7 = __riscv_vfmul_vf_f64m1( A1, B3, 4 );
-            vfloat64m1_t result8 = __riscv_vfmul_vf_f64m1( A0, B4, 4 );
-            vfloat64m1_t result9 = __riscv_vfmul_vf_f64m1( A1, B4, 4 );
-            vfloat64m1_t result10 = __riscv_vfmul_vf_f64m1( A0, B5, 4 );
-            vfloat64m1_t result11 = __riscv_vfmul_vf_f64m1( A1, B5, 4 );
-            vfloat64m1_t result12 = __riscv_vfmul_vf_f64m1( A0, B6, 4 );
-            vfloat64m1_t result13 = __riscv_vfmul_vf_f64m1( A1, B6, 4 );
-            vfloat64m1_t result14 = __riscv_vfmul_vf_f64m1( A0, B7, 4 );
-            vfloat64m1_t result15 = __riscv_vfmul_vf_f64m1( A1, B7, 4 );
+            vfloat64m2_t result01 =  __riscv_vfmul_vf_f64m2( A00, B0, 8 );
+            vfloat64m2_t result23 =  __riscv_vfmul_vf_f64m2( A00, B1, 8 );
+            vfloat64m2_t result45 =  __riscv_vfmul_vf_f64m2( A00, B2, 8 );
+            vfloat64m2_t result67 =  __riscv_vfmul_vf_f64m2( A00, B3, 8 );
+            vfloat64m2_t result89 =  __riscv_vfmul_vf_f64m2( A00, B4, 8 );
+            vfloat64m2_t resultAB =  __riscv_vfmul_vf_f64m2( A00, B5, 8 );
+            vfloat64m2_t resultCD =  __riscv_vfmul_vf_f64m2( A00, B6, 8 );
+            vfloat64m2_t resultEF =  __riscv_vfmul_vf_f64m2( A00, B7, 8 );
 
             for (BLASLONG k = K; --k; ) {
                 B0 = B[0];
@@ -1688,27 +1677,35 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
                 B += 8;
 
                 A00 = __riscv_vle64_v_f64m2( A, 8 );
-                A0 = __riscv_vget_v_f64m2_f64m1(A00, 0);
-                A1 = __riscv_vget_v_f64m2_f64m1(A00, 1);
                 A += 8;
 
-                result0 = __riscv_vfmacc_vf_f64m1( result0, B0, A0, 4 );
-                result1 = __riscv_vfmacc_vf_f64m1( result1, B0, A1, 4 );
-                result2 = __riscv_vfmacc_vf_f64m1( result2, B1, A0, 4 );
-                result3 = __riscv_vfmacc_vf_f64m1( result3, B1, A1, 4 );
-                result4 = __riscv_vfmacc_vf_f64m1( result4, B2, A0, 4 );
-                result5 = __riscv_vfmacc_vf_f64m1( result5, B2, A1, 4 );
-                result6 = __riscv_vfmacc_vf_f64m1( result6, B3, A0, 4 );
-                result7 = __riscv_vfmacc_vf_f64m1( result7, B3, A1, 4 );
-                result8 = __riscv_vfmacc_vf_f64m1( result8, B4, A0, 4 );
-                result9 = __riscv_vfmacc_vf_f64m1( result9, B4, A1, 4 );
-                result10 = __riscv_vfmacc_vf_f64m1( result10, B5, A0, 4 );
-                result11 = __riscv_vfmacc_vf_f64m1( result11, B5, A1, 4 );
-                result12 = __riscv_vfmacc_vf_f64m1( result12, B6, A0, 4 );
-                result13 = __riscv_vfmacc_vf_f64m1( result13, B6, A1, 4 );
-                result14 = __riscv_vfmacc_vf_f64m1( result14, B7, A0, 4 );
-                result15 = __riscv_vfmacc_vf_f64m1( result15, B7, A1, 4 );
+                result01 = __riscv_vfmacc_vf_f64m2( result01, B0, A00, 8 );
+                result23 = __riscv_vfmacc_vf_f64m2( result23, B1, A00, 8 );
+                result45 = __riscv_vfmacc_vf_f64m2( result45, B2, A00, 8 );
+                result67 = __riscv_vfmacc_vf_f64m2( result67, B3, A00, 8 );
+                result89 = __riscv_vfmacc_vf_f64m2( result89, B4, A00, 8 );
+                resultAB = __riscv_vfmacc_vf_f64m2( resultAB, B5, A00, 8 );
+                resultCD = __riscv_vfmacc_vf_f64m2( resultCD, B6, A00, 8 );
+                resultEF = __riscv_vfmacc_vf_f64m2( resultEF, B7, A00, 8 );
             }
+
+            // LMUL = 2 does worst here
+            vfloat64m1_t result0 = __riscv_vget_v_f64m2_f64m1(result01, 0);
+            vfloat64m1_t result1 = __riscv_vget_v_f64m2_f64m1(result01, 1);
+            vfloat64m1_t result2 = __riscv_vget_v_f64m2_f64m1(result23, 0);
+            vfloat64m1_t result3 = __riscv_vget_v_f64m2_f64m1(result23, 1);
+            vfloat64m1_t result4 = __riscv_vget_v_f64m2_f64m1(result45, 0);
+            vfloat64m1_t result5 = __riscv_vget_v_f64m2_f64m1(result45, 1);
+            vfloat64m1_t result6 = __riscv_vget_v_f64m2_f64m1(result67, 0);
+            vfloat64m1_t result7 = __riscv_vget_v_f64m2_f64m1(result67, 1);
+            vfloat64m1_t result8 = __riscv_vget_v_f64m2_f64m1(result89, 0);
+            vfloat64m1_t result9 = __riscv_vget_v_f64m2_f64m1(result89, 1);
+            vfloat64m1_t result10 = __riscv_vget_v_f64m2_f64m1(resultAB, 0);
+            vfloat64m1_t result11 = __riscv_vget_v_f64m2_f64m1(resultAB, 1);
+            vfloat64m1_t result12 = __riscv_vget_v_f64m2_f64m1(resultCD, 0);
+            vfloat64m1_t result13 = __riscv_vget_v_f64m2_f64m1(resultCD, 1);
+            vfloat64m1_t result14 = __riscv_vget_v_f64m2_f64m1(resultEF, 0);
+            vfloat64m1_t result15 = __riscv_vget_v_f64m2_f64m1(resultEF, 1);
 
             FLOAT *C2 = C;
 

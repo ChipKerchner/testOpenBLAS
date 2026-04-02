@@ -2159,27 +2159,16 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             B += 8;
 
             vfloat32m2_t A00 = __riscv_vle32_v_f32m2( A, 16 );
-            vfloat32m1_t A0 = __riscv_vget_v_f32m2_f32m1(A00, 0);
-            vfloat32m1_t A1 = __riscv_vget_v_f32m2_f32m1(A00, 1);
             A += 16;
 
-            // LMUL = 2 does worst here
-            vfloat32m1_t result0 = __riscv_vfmul_vf_f32m1( A0, B0, 8 );
-            vfloat32m1_t result1 = __riscv_vfmul_vf_f32m1( A1, B0, 8 );
-            vfloat32m1_t result2 = __riscv_vfmul_vf_f32m1( A0, B1, 8 );
-            vfloat32m1_t result3 = __riscv_vfmul_vf_f32m1( A1, B1, 8 );
-            vfloat32m1_t result4 = __riscv_vfmul_vf_f32m1( A0, B2, 8 );
-            vfloat32m1_t result5 = __riscv_vfmul_vf_f32m1( A1, B2, 8 );
-            vfloat32m1_t result6 = __riscv_vfmul_vf_f32m1( A0, B3, 8 );
-            vfloat32m1_t result7 = __riscv_vfmul_vf_f32m1( A1, B3, 8 );
-            vfloat32m1_t result8 = __riscv_vfmul_vf_f32m1( A0, B4, 8 );
-            vfloat32m1_t result9 = __riscv_vfmul_vf_f32m1( A1, B4, 8 );
-            vfloat32m1_t result10 = __riscv_vfmul_vf_f32m1( A0, B5, 8 );
-            vfloat32m1_t result11 = __riscv_vfmul_vf_f32m1( A1, B5, 8 );
-            vfloat32m1_t result12 = __riscv_vfmul_vf_f32m1( A0, B6, 8 );
-            vfloat32m1_t result13 = __riscv_vfmul_vf_f32m1( A1, B6, 8 );
-            vfloat32m1_t result14 = __riscv_vfmul_vf_f32m1( A0, B7, 8 );
-            vfloat32m1_t result15 = __riscv_vfmul_vf_f32m1( A1, B7, 8 );
+            vfloat32m2_t result01 =  __riscv_vfmul_vf_f32m2( A00, B0, 16 );
+            vfloat32m2_t result23 =  __riscv_vfmul_vf_f32m2( A00, B1, 16 );
+            vfloat32m2_t result45 =  __riscv_vfmul_vf_f32m2( A00, B2, 16 );
+            vfloat32m2_t result67 =  __riscv_vfmul_vf_f32m2( A00, B3, 16 );
+            vfloat32m2_t result89 =  __riscv_vfmul_vf_f32m2( A00, B4, 16 );
+            vfloat32m2_t resultAB =  __riscv_vfmul_vf_f32m2( A00, B5, 16 );
+            vfloat32m2_t resultCD =  __riscv_vfmul_vf_f32m2( A00, B6, 16 );
+            vfloat32m2_t resultEF =  __riscv_vfmul_vf_f32m2( A00, B7, 16 );
 
             for (BLASLONG k = K; --k; ) {
                 B0 = B[0];
@@ -2193,27 +2182,35 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
                 B += 8;
 
                 A00 = __riscv_vle32_v_f32m2( A, 16 );
-                A0 = __riscv_vget_v_f32m2_f32m1(A00, 0);
-                A1 = __riscv_vget_v_f32m2_f32m1(A00, 1);
                 A += 16;
 
-                result0 = __riscv_vfmacc_vf_f32m1( result0, B0, A0, 8 );
-                result1 = __riscv_vfmacc_vf_f32m1( result1, B0, A1, 8 );
-                result2 = __riscv_vfmacc_vf_f32m1( result2, B1, A0, 8 );
-                result3 = __riscv_vfmacc_vf_f32m1( result3, B1, A1, 8 );
-                result4 = __riscv_vfmacc_vf_f32m1( result4, B2, A0, 8 );
-                result5 = __riscv_vfmacc_vf_f32m1( result5, B2, A1, 8 );
-                result6 = __riscv_vfmacc_vf_f32m1( result6, B3, A0, 8 );
-                result7 = __riscv_vfmacc_vf_f32m1( result7, B3, A1, 8 );
-                result8 = __riscv_vfmacc_vf_f32m1( result8, B4, A0, 8 );
-                result9 = __riscv_vfmacc_vf_f32m1( result9, B4, A1, 8 );
-                result10 = __riscv_vfmacc_vf_f32m1( result10, B5, A0, 8 );
-                result11 = __riscv_vfmacc_vf_f32m1( result11, B5, A1, 8 );
-                result12 = __riscv_vfmacc_vf_f32m1( result12, B6, A0, 8 );
-                result13 = __riscv_vfmacc_vf_f32m1( result13, B6, A1, 8 );
-                result14 = __riscv_vfmacc_vf_f32m1( result14, B7, A0, 8 );
-                result15 = __riscv_vfmacc_vf_f32m1( result15, B7, A1, 8 );
+                result01 = __riscv_vfmacc_vf_f32m2( result01, B0, A00, 16 );
+                result23 = __riscv_vfmacc_vf_f32m2( result23, B1, A00, 16 );
+                result45 = __riscv_vfmacc_vf_f32m2( result45, B2, A00, 16 );
+                result67 = __riscv_vfmacc_vf_f32m2( result67, B3, A00, 16 );
+                result89 = __riscv_vfmacc_vf_f32m2( result89, B4, A00, 16 );
+                resultAB = __riscv_vfmacc_vf_f32m2( resultAB, B5, A00, 16 );
+                resultCD = __riscv_vfmacc_vf_f32m2( resultCD, B6, A00, 16 );
+                resultEF = __riscv_vfmacc_vf_f32m2( resultEF, B7, A00, 16 );
             }
+
+            // LMUL = 2 does worst here
+            vfloat32m1_t result0 = __riscv_vget_v_f32m2_f32m1(result01, 0);
+            vfloat32m1_t result1 = __riscv_vget_v_f32m2_f32m1(result01, 1);
+            vfloat32m1_t result2 = __riscv_vget_v_f32m2_f32m1(result23, 0);
+            vfloat32m1_t result3 = __riscv_vget_v_f32m2_f32m1(result23, 1);
+            vfloat32m1_t result4 = __riscv_vget_v_f32m2_f32m1(result45, 0);
+            vfloat32m1_t result5 = __riscv_vget_v_f32m2_f32m1(result45, 1);
+            vfloat32m1_t result6 = __riscv_vget_v_f32m2_f32m1(result67, 0);
+            vfloat32m1_t result7 = __riscv_vget_v_f32m2_f32m1(result67, 1);
+            vfloat32m1_t result8 = __riscv_vget_v_f32m2_f32m1(result89, 0);
+            vfloat32m1_t result9 = __riscv_vget_v_f32m2_f32m1(result89, 1);
+            vfloat32m1_t result10 = __riscv_vget_v_f32m2_f32m1(resultAB, 0);
+            vfloat32m1_t result11 = __riscv_vget_v_f32m2_f32m1(resultAB, 1);
+            vfloat32m1_t result12 = __riscv_vget_v_f32m2_f32m1(resultCD, 0);
+            vfloat32m1_t result13 = __riscv_vget_v_f32m2_f32m1(resultCD, 1);
+            vfloat32m1_t result14 = __riscv_vget_v_f32m2_f32m1(resultEF, 0);
+            vfloat32m1_t result15 = __riscv_vget_v_f32m2_f32m1(resultEF, 1);
 
             FLOAT *C2 = C;
 
