@@ -547,11 +547,16 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
 }
 
 #ifdef VECTORIZE_MEMSET
-#if defined(TEST_FLOAT) || defined(TEST_DOUBLE)
+#ifdef TEST_FLOAT
 #define SET_DATA  uint32_t
 #define SET_VEC   __riscv_vse32_v_u32m8
 #define SET_MOVE  __riscv_vmv_v_x_u32m8
 #define SET_Z     vuint32m8_t
+#elif defined(TEST_DOUBLE)
+#define SET_DATA  uint64_t
+#define SET_VEC   __riscv_vse64_v_u64m8
+#define SET_MOVE  __riscv_vmv_v_x_u64m8
+#define SET_Z     vuint64m8_t
 #else
 #define SET_DATA  uint16_t
 #define SET_VEC   __riscv_vse16_v_u16m8
@@ -562,8 +567,10 @@ FORCEINLINE void init_array(BLASLONG i, int y, IFLOAT *input_array0)
 
 #define SET_DATA8 uint8_t
 #define SET_VEC8  __riscv_vse8_v_u8m8
-#if defined(TEST_FLOAT) || defined(TEST_DOUBLE)
+#ifdef TEST_FLOAT
 #define SET_MOVE8 __riscv_vreinterpret_v_u32m8_u8m8
+#elif defined(TEST_DOUBLE)
+#define SET_MOVE8 __riscv_vreinterpret_v_u64m8_u8m8
 #else
 #define SET_MOVE8 __riscv_vreinterpret_v_u16m8_u8m8
 #endif
@@ -583,79 +590,117 @@ void memset_zero(void *input, BLASLONG size, bool dir)
     SET_Z z = SET_MOVE(0, gvl);
 
     if (dir) {
-       SET_DATA *input2 = (SET_DATA *)(input);
-       while (size >= (gvl * 16 * SET_SIZE)) {
-         SET_VEC(input2 + (0 * gvl), z, gvl);
-         SET_VEC(input2 + (1 * gvl), z, gvl);
-         SET_VEC(input2 + (2 * gvl), z, gvl);
-         SET_VEC(input2 + (3 * gvl), z, gvl);
-         SET_VEC(input2 + (4 * gvl), z, gvl);
-         SET_VEC(input2 + (5 * gvl), z, gvl);
-         SET_VEC(input2 + (6 * gvl), z, gvl);
-         SET_VEC(input2 + (7 * gvl), z, gvl);
-         SET_VEC(input2 + (8 * gvl), z, gvl);
-         SET_VEC(input2 + (9 * gvl), z, gvl);
-         SET_VEC(input2 + (10 * gvl), z, gvl);
-         SET_VEC(input2 + (11 * gvl), z, gvl);
-         SET_VEC(input2 + (12 * gvl), z, gvl);
-         SET_VEC(input2 + (13 * gvl), z, gvl);
-         SET_VEC(input2 + (14 * gvl), z, gvl);
-         SET_VEC(input2 + (15 * gvl), z, gvl);
-         input2 += 16 * gvl;
-         size -= 16 * (gvl * SET_SIZE);
+      SET_DATA *input2 = (SET_DATA *)(input);
+      SET_DATA *input3 = (SET_DATA *)(input) + (1 * gvl);
+      while (size >= (gvl * 16 * SET_SIZE)) {
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        size -= 16 * (gvl * SET_SIZE);
       }
       while (size >= (gvl * 4 * SET_SIZE)) {
-         SET_VEC(input2 + (0 * gvl), z, gvl);
-         SET_VEC(input2 + (1 * gvl), z, gvl);
-         SET_VEC(input2 + (2 * gvl), z, gvl);
-         SET_VEC(input2 + (3 * gvl), z, gvl);
-         input2 += 4 * gvl;
-         size -= 4 * (gvl * SET_SIZE);
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 += 2 * gvl;
+        input3 += 2 * gvl;
+        size -= 4 * (gvl * SET_SIZE);
       }
       if (size >= (gvl * SET_SIZE)) {
-         SET_VEC(input2, z, gvl);
-         input2 += gvl;
-         size -= (gvl * SET_SIZE);
+        SET_VEC(input2, z, gvl);
+        input2 += gvl;
+        size -= (gvl * SET_SIZE);
       }
       SET_DATA8 *input8 = (SET_DATA8 *)(input2);
       SET_Z8 z8 = SET_MOVE8(z);
       SET_VEC8(input8, z8, size);
     } else {
-      SET_DATA *input2 = (SET_DATA *)((unsigned char *)(input) + size);
+      SET_DATA *input2 = (SET_DATA *)((unsigned char *)(input) + size) - (1 * gvl);
+      SET_DATA *input3 = (SET_DATA *)((unsigned char *)(input) + size) - (2 * gvl);
       while (size >= (gvl * 16 * SET_SIZE)) {
-         SET_VEC(input2 - (1 * gvl), z, gvl);
-         SET_VEC(input2 - (2 * gvl), z, gvl);
-         SET_VEC(input2 - (3 * gvl), z, gvl);
-         SET_VEC(input2 - (4 * gvl), z, gvl);
-         SET_VEC(input2 - (5 * gvl), z, gvl);
-         SET_VEC(input2 - (6 * gvl), z, gvl);
-         SET_VEC(input2 - (7 * gvl), z, gvl);
-         SET_VEC(input2 - (8 * gvl), z, gvl);
-         SET_VEC(input2 - (9 * gvl), z, gvl);
-         SET_VEC(input2 - (10 * gvl), z, gvl);
-         SET_VEC(input2 - (11 * gvl), z, gvl);
-         SET_VEC(input2 - (12 * gvl), z, gvl);
-         SET_VEC(input2 - (13 * gvl), z, gvl);
-         SET_VEC(input2 - (14 * gvl), z, gvl);
-         SET_VEC(input2 - (15 * gvl), z, gvl);
-         SET_VEC(input2 - (16 * gvl), z, gvl);
-         input2 -= 16 * gvl;
-         size -= 16 * (gvl * SET_SIZE);
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        size -= 16 * (gvl * SET_SIZE);
       }
       while (size >= (gvl * 4 * SET_SIZE)) {
-         SET_VEC(input2 - (1 * gvl), z, gvl);
-         SET_VEC(input2 - (2 * gvl), z, gvl);
-         SET_VEC(input2 - (3 * gvl), z, gvl);
-         SET_VEC(input2 - (4 * gvl), z, gvl);
-         input2 -= 4 * gvl;
-         size -= 4 * (gvl * SET_SIZE);
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        SET_VEC(input2, z, gvl);
+        SET_VEC(input3, z, gvl);
+        input2 -= 2 * gvl;
+        input3 -= 2 * gvl;
+        size -= 4 * (gvl * SET_SIZE);
       }
       if (size >= (gvl * SET_SIZE)) {
-         SET_VEC(input2 - (1 * gvl), z, gvl);
-         input2 -= gvl;
-         size -= (gvl * SET_SIZE);
+        SET_VEC(input2 - (1 * gvl), z, gvl);
+        input2 -= gvl;
+        size -= (gvl * SET_SIZE);
       }
-      SET_DATA8 *input8 = (SET_DATA8 *)((unsigned char *)(input2) - size);
+      SET_DATA8 *input8 = (SET_DATA8 *)((unsigned char *)(input2) - size) + (1 * gvl);
       SET_Z8 z8 = SET_MOVE8(z);
       SET_VEC8(input8, z8, size);
     }

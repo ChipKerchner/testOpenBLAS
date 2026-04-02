@@ -1653,11 +1653,12 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             FLOAT B7 = B[7];
             B += 8;
 
-            // LMUL = 2 does worst here
-            vfloat64m1_t A0 = __riscv_vle64_v_f64m1( &A[0*4], 4 );
-            vfloat64m1_t A1 = __riscv_vle64_v_f64m1( &A[1*4], 4 );
+            vfloat64m2_t A00 = __riscv_vle64_v_f64m2( A, 8 );
+            vfloat64m1_t A0 = __riscv_vget_v_f64m2_f64m1(A00, 0);
+            vfloat64m1_t A1 = __riscv_vget_v_f64m2_f64m1(A00, 1);
             A += 8;
 
+            // LMUL = 2 does worst here
             vfloat64m1_t result0 = __riscv_vfmul_vf_f64m1( A0, B0, 4 );
             vfloat64m1_t result1 = __riscv_vfmul_vf_f64m1( A1, B0, 4 );
             vfloat64m1_t result2 = __riscv_vfmul_vf_f64m1( A0, B1, 4 );
@@ -1686,8 +1687,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
                 B7 = B[7];
                 B += 8;
 
-                A0 = __riscv_vle64_v_f64m1( &A[0*4], 4 );
-                A1 = __riscv_vle64_v_f64m1( &A[1*4], 4 );
+                A00 = __riscv_vle64_v_f64m2( A, 8 );
+                A0 = __riscv_vget_v_f64m2_f64m1(A00, 0);
+                A1 = __riscv_vget_v_f64m2_f64m1(A00, 1);
                 A += 8;
 
                 result0 = __riscv_vfmacc_vf_f64m1( result0, B0, A0, 4 );

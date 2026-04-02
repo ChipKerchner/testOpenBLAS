@@ -2158,11 +2158,12 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
             FLOAT B7 = B[7];
             B += 8;
 
-            // LMUL = 2 does worst here
-            vfloat32m1_t A0 = __riscv_vle32_v_f32m1( &A[0*8], 8 );
-            vfloat32m1_t A1 = __riscv_vle32_v_f32m1( &A[1*8], 8 );
+            vfloat32m2_t A00 = __riscv_vle32_v_f32m2( A, 16 );
+            vfloat32m1_t A0 = __riscv_vget_v_f32m2_f32m1(A00, 0);
+            vfloat32m1_t A1 = __riscv_vget_v_f32m2_f32m1(A00, 1);
             A += 16;
 
+            // LMUL = 2 does worst here
             vfloat32m1_t result0 = __riscv_vfmul_vf_f32m1( A0, B0, 8 );
             vfloat32m1_t result1 = __riscv_vfmul_vf_f32m1( A1, B0, 8 );
             vfloat32m1_t result2 = __riscv_vfmul_vf_f32m1( A0, B1, 8 );
@@ -2191,8 +2192,9 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
                 B7 = B[7];
                 B += 8;
 
-                A0 = __riscv_vle32_v_f32m1( &A[0*8], 8 );
-                A1 = __riscv_vle32_v_f32m1( &A[1*8], 8 );
+                A00 = __riscv_vle32_v_f32m2( A, 16 );
+                A0 = __riscv_vget_v_f32m2_f32m1(A00, 0);
+                A1 = __riscv_vget_v_f32m2_f32m1(A00, 1);
                 A += 16;
 
                 result0 = __riscv_vfmacc_vf_f32m1( result0, B0, A0, 8 );
