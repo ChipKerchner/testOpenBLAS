@@ -1689,87 +1689,39 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
                 resultEF = __riscv_vfmacc_vf_f64m2( resultEF, B7, A00, 8 );
             }
 
-            // LMUL = 2 does worst here
-            vfloat64m1_t result0 = __riscv_vget_v_f64m2_f64m1(result01, 0);
-            vfloat64m1_t result1 = __riscv_vget_v_f64m2_f64m1(result01, 1);
-            vfloat64m1_t result2 = __riscv_vget_v_f64m2_f64m1(result23, 0);
-            vfloat64m1_t result3 = __riscv_vget_v_f64m2_f64m1(result23, 1);
-            vfloat64m1_t result4 = __riscv_vget_v_f64m2_f64m1(result45, 0);
-            vfloat64m1_t result5 = __riscv_vget_v_f64m2_f64m1(result45, 1);
-            vfloat64m1_t result6 = __riscv_vget_v_f64m2_f64m1(result67, 0);
-            vfloat64m1_t result7 = __riscv_vget_v_f64m2_f64m1(result67, 1);
-            vfloat64m1_t result8 = __riscv_vget_v_f64m2_f64m1(result89, 0);
-            vfloat64m1_t result9 = __riscv_vget_v_f64m2_f64m1(result89, 1);
-            vfloat64m1_t result10 = __riscv_vget_v_f64m2_f64m1(resultAB, 0);
-            vfloat64m1_t result11 = __riscv_vget_v_f64m2_f64m1(resultAB, 1);
-            vfloat64m1_t result12 = __riscv_vget_v_f64m2_f64m1(resultCD, 0);
-            vfloat64m1_t result13 = __riscv_vget_v_f64m2_f64m1(resultCD, 1);
-            vfloat64m1_t result14 = __riscv_vget_v_f64m2_f64m1(resultEF, 0);
-            vfloat64m1_t result15 = __riscv_vget_v_f64m2_f64m1(resultEF, 1);
-
             FLOAT *C2 = C;
 
-            vfloat64m2_t c00;
-            c00 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
-            vfloat64m1_t c0 = __riscv_vget_v_f64m2_f64m1(c00, 0);
-            vfloat64m1_t c1 = __riscv_vget_v_f64m2_f64m1(c00, 1);
-            c00 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
-            vfloat64m1_t c2 = __riscv_vget_v_f64m2_f64m1(c00, 0);
-            vfloat64m1_t c3 = __riscv_vget_v_f64m2_f64m1(c00, 1);
-            c00 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
-            vfloat64m1_t c4 = __riscv_vget_v_f64m2_f64m1(c00, 0);
-            vfloat64m1_t c5 = __riscv_vget_v_f64m2_f64m1(c00, 1);
-            c00 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
-            vfloat64m1_t c6 = __riscv_vget_v_f64m2_f64m1(c00, 0);
-            vfloat64m1_t c7 = __riscv_vget_v_f64m2_f64m1(c00, 1);
-            c00 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
-            vfloat64m1_t c8 = __riscv_vget_v_f64m2_f64m1(c00, 0);
-            vfloat64m1_t c9 = __riscv_vget_v_f64m2_f64m1(c00, 1);
-            c00 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
-            vfloat64m1_t c10 = __riscv_vget_v_f64m2_f64m1(c00, 0);
-            vfloat64m1_t c11 = __riscv_vget_v_f64m2_f64m1(c00, 1);
-            c00 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
-            vfloat64m1_t c12 = __riscv_vget_v_f64m2_f64m1(c00, 0);
-            vfloat64m1_t c13 = __riscv_vget_v_f64m2_f64m1(c00, 1);
-            c00 = __riscv_vle64_v_f64m2(C, 8);
-            vfloat64m1_t c14 = __riscv_vget_v_f64m2_f64m1(c00, 0);
-            vfloat64m1_t c15 = __riscv_vget_v_f64m2_f64m1(c00, 1);
+            vfloat64m2_t c01 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
+            vfloat64m2_t c23 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
+            vfloat64m2_t c45 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
+            vfloat64m2_t c67 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
 
-            c0 = __riscv_vfmacc_vf_f64m1( c0, alpha, result0, 4 );
-            c1 = __riscv_vfmacc_vf_f64m1( c1, alpha, result1, 4 );
-            c2 = __riscv_vfmacc_vf_f64m1( c2, alpha, result2, 4 );
-            c3 = __riscv_vfmacc_vf_f64m1( c3, alpha, result3, 4 );
-            c4 = __riscv_vfmacc_vf_f64m1( c4, alpha, result4, 4 );
-            c5 = __riscv_vfmacc_vf_f64m1( c5, alpha, result5, 4 );
-            c6 = __riscv_vfmacc_vf_f64m1( c6, alpha, result6, 4 );
-            c7 = __riscv_vfmacc_vf_f64m1( c7, alpha, result7, 4 );
-            c8 = __riscv_vfmacc_vf_f64m1( c8, alpha, result8, 4 );
-            c9 = __riscv_vfmacc_vf_f64m1( c9, alpha, result9, 4 );
-            c10 = __riscv_vfmacc_vf_f64m1( c10, alpha, result10, 4 );
-            c11 = __riscv_vfmacc_vf_f64m1( c11, alpha, result11, 4 );
-            c12 = __riscv_vfmacc_vf_f64m1( c12, alpha, result12, 4 );
-            c13 = __riscv_vfmacc_vf_f64m1( c13, alpha, result13, 4 );
-            c14 = __riscv_vfmacc_vf_f64m1( c14, alpha, result14, 4 );
-            c15 = __riscv_vfmacc_vf_f64m1( c15, alpha, result15, 4 );
+            c01 = __riscv_vfmacc_vf_f64m2( c01, alpha, result01, 8 );
+            c23 = __riscv_vfmacc_vf_f64m2( c23, alpha, result23, 8 );
+            c45 = __riscv_vfmacc_vf_f64m2( c45, alpha, result45, 8 );
+            c67 = __riscv_vfmacc_vf_f64m2( c67, alpha, result67, 8 );
+
+            vfloat64m2_t c89 = __riscv_vle64_v_f64m2(C, 8); C += ldc;
+            vfloat64m2_t cAB = __riscv_vle64_v_f64m2(C, 8); C += ldc;
+            vfloat64m2_t cCD = __riscv_vle64_v_f64m2(C, 8); C += ldc;
+            vfloat64m2_t cEF = __riscv_vle64_v_f64m2(C, 8);
+
+            c89 = __riscv_vfmacc_vf_f64m2( c89, alpha, result89, 8 );
+            cAB = __riscv_vfmacc_vf_f64m2( cAB, alpha, resultAB, 8 );
+            cCD = __riscv_vfmacc_vf_f64m2( cCD, alpha, resultCD, 8 );
+            cEF = __riscv_vfmacc_vf_f64m2( cEF, alpha, resultEF, 8 );
 
             C = C2;
 
-            c00 = __riscv_vcreate_v_f64m1_f64m2(c0, c1);
-            __riscv_vse64_v_f64m2(C, c00, 8); C += ldc;
-            c00 = __riscv_vcreate_v_f64m1_f64m2(c2, c3);
-            __riscv_vse64_v_f64m2(C, c00, 8); C += ldc;
-            c00 = __riscv_vcreate_v_f64m1_f64m2(c4, c5);
-            __riscv_vse64_v_f64m2(C, c00, 8); C += ldc;
-            c00 = __riscv_vcreate_v_f64m1_f64m2(c6, c7);
-            __riscv_vse64_v_f64m2(C, c00, 8); C += ldc;
-            c00 = __riscv_vcreate_v_f64m1_f64m2(c8, c9);
-            __riscv_vse64_v_f64m2(C, c00, 8); C += ldc;
-            c00 = __riscv_vcreate_v_f64m1_f64m2(c10, c11);
-            __riscv_vse64_v_f64m2(C, c00, 8); C += ldc;
-            c00 = __riscv_vcreate_v_f64m1_f64m2(c12, c13);
-            __riscv_vse64_v_f64m2(C, c00, 8); C += ldc;
-            c00 = __riscv_vcreate_v_f64m1_f64m2(c14, c15);
-            __riscv_vse64_v_f64m2(C, c00, 8);
+            __riscv_vse64_v_f64m2(C, c01, 8); C += ldc;
+            __riscv_vse64_v_f64m2(C, c23, 8); C += ldc;
+            __riscv_vse64_v_f64m2(C, c45, 8); C += ldc;
+            __riscv_vse64_v_f64m2(C, c67, 8); C += ldc;
+            __riscv_vse64_v_f64m2(C, c89, 8); C += ldc;
+            __riscv_vse64_v_f64m2(C, cAB, 8); C += ldc;
+            __riscv_vse64_v_f64m2(C, cCD, 8); C += ldc;
+            __riscv_vse64_v_f64m2(C, cEF, 8);
+
             C = C2 + 8;
         }
 
