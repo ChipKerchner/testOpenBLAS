@@ -1628,11 +1628,12 @@ static void NM_TAIL(BLASLONG K, BLASLONG M, const BLASLONG m_edge, const BLASLON
         }
     }
 }
+
 int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, FLOAT* C, BLASLONG ldc)
 {
     if (K <= 0) return 0;
     const BLASLONG m_edge = M & 7;
-    const bool S = (M == (ldc & 0x7));
+    const bool S = (ldc == m_edge);
 
     // -- MAIN PASS
 

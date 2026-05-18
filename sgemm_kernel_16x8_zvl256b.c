@@ -2137,7 +2137,7 @@ int CNAME(BLASLONG M, BLASLONG N, BLASLONG K, FLOAT alpha, FLOAT* A, FLOAT* B, F
 {
     if (K <= 0) return 0;
     const BLASLONG m_edge = M & 15;
-    const bool S = (M == (ldc & 0xF));
+    const bool S = (ldc == m_edge);
 
     // -- MAIN PASS
 
